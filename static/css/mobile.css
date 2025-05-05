@@ -1,0 +1,284 @@
+/* 
+ * Mobile-specific styles for Adaptive Contrast Enhancement application
+ * This file contains responsive styles for mobile devices
+ */
+
+/* Base mobile styles */
+@media (max-width: 768px) {
+    /* General layout */
+    body {
+        font-size: 14px;
+    }
+    
+    .container {
+        width: 100%;
+        padding: 10px;
+        margin: 0;
+    }
+    
+    h1 {
+        font-size: 1.8rem;
+        margin-bottom: 15px;
+    }
+    
+    h2 {
+        font-size: 1.4rem;
+    }
+    
+    h3 {
+        font-size: 1.2rem;
+    }
+    
+    /* Compact header */
+    .compact-header {
+        padding: 10px;
+        gap: 10px;
+    }
+    
+    /* File upload section */
+    .file-input-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .file-input-label {
+        width: 100%;
+        margin-bottom: 5px;
+        text-align: center;
+    }
+    
+    #file-name {
+        width: 100%;
+        margin: 5px 0;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    #upload-btn {
+        width: 100%;
+        margin-top: 5px;
+        margin-left: 0;
+    }
+    
+    /* Preset section */
+    .preset-section {
+        padding: 8px 10px;
+    }
+    
+    .preset-buttons {
+        justify-content: center;
+        gap: 5px;
+    }
+    
+    .preset-btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+        margin: 2px;
+        min-width: 80px;
+    }
+    
+    /* Image container */
+    .image-container {
+        flex-direction: column;
+    }
+    
+    .image-box {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    
+    .image-wrapper {
+        height: auto;
+        max-height: 300px;
+    }
+    
+    /* Parameters section */
+    .parameters-section {
+        padding: 10px;
+    }
+    
+    .tabs .tab-header {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .tab-btn {
+        padding: 8px 12px;
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+    }
+    
+    .param-group {
+        margin-bottom: 15px;
+    }
+    
+    /* Apply button container */
+    .apply-btn-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    #apply-btn, #reset-btn {
+        width: 100%;
+        padding: 10px;
+    }
+    
+    /* History section */
+    .history-section {
+        flex-direction: column;
+    }
+    
+    .history-list {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 20px;
+        max-height: 200px;
+    }
+    
+    .history-entry {
+        padding: 8px;
+    }
+    
+    .history-entry-thumbnail {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .history-detail {
+        width: 100%;
+    }
+    
+    .history-images {
+        flex-direction: column;
+    }
+    
+    .history-image-box {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    
+    .history-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .history-actions button {
+        width: 100%;
+    }
+    
+    /* Loading overlay */
+    .loading-content {
+        width: 90%;
+        max-width: 300px;
+        padding: 20px;
+    }
+    
+    .loading-spinner {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .loading-text {
+        font-size: 1rem;
+    }
+    
+    /* Error messages */
+    .error-message {
+        max-width: 90%;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        font-size: 0.9rem;
+        padding: 10px 15px;
+    }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    .main-tabs {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .main-tab {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .tab-btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+    
+    .preset-btn {
+        font-size: 0.75rem;
+        padding: 5px 8px;
+    }
+    
+    .image-wrapper {
+        max-height: 250px;
+    }
+    
+    /* Make range inputs more touch-friendly */
+    input[type="range"] {
+        height: 25px;
+    }
+    
+    /* Adjust loading overlay */
+    .loading-content {
+        max-width: 250px;
+        padding: 15px;
+    }
+}
+
+/* Landscape orientation */
+@media (max-width: 768px) and (orientation: landscape) {
+    .image-container {
+        flex-direction: row;
+    }
+    
+    .image-box {
+        width: 48%;
+    }
+    
+    .history-images {
+        flex-direction: row;
+    }
+    
+    .history-image-box {
+        width: 48%;
+    }
+}
+
+/* High DPI devices */
+@media (max-width: 768px) and (-webkit-min-device-pixel-ratio: 2), 
+       (max-width: 768px) and (min-resolution: 192dpi) {
+    /* Optimize for high-resolution displays */
+    .image-wrapper img {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+    
+    /* Increase touch targets for high-res small screens */
+    .preset-btn, .tab-btn, button {
+        min-height: 44px;
+    }
+}
+
+/* Dark mode support for mobile */
+@media (max-width: 768px) and (prefers-color-scheme: dark) {
+    /* Adjust colors for dark mode if needed */
+    .error-message {
+        background-color: rgba(255, 50, 50, 0.9);
+    }
+    
+    .loading-content {
+        background-color: rgba(60, 10, 110, 0.95);
+    }
+}

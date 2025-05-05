@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adaptive Contrast Enhancement</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='img/favicon.png') }}" type="image/png">
+</head>
+<body>
+    <div class="container">
+        <h1>Adaptive Contrast Enhancement</h1>
+        
+        <div class="main-tabs">
+            <div class="main-tab active" data-tab="enhance">Enhance</div>
+            <div class="main-tab" data-tab="history">History</div>
+        </div>
+        
+        <div id="enhance-tab" class="main-tab-content active">
+            <div class="compact-header">
+                <div class="upload-section">
+                    <form id="upload-form" enctype="multipart/form-data">
+                        <div class="file-input-container">
+                            <input type="file" id="image-input" name="image" accept="image/*">
+                            <label for="image-input" class="file-input-label">Choose File</label>
+                            <span id="file-name">No file chosen</span>
+                            <button type="submit" id="upload-btn">Upload</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="preset-section">
+                    <h3>Quick Presets</h3>
+                    <div class="preset-buttons">
+                        <button class="preset-btn" data-preset="dark_image" title="Enhances details in dark areas while preserving highlights">Dark Image</button>
+                        <button class="preset-btn" data-preset="bright_image" title="Recovers details in overexposed areas">Bright Image</button>
+                        <button class="preset-btn" data-preset="sharp_edges" title="Enhances edge definition and clarity">Sharp Edges</button>
+                        <button class="preset-btn" data-preset="blurry_image" title="Improves focus and reduces blur">Blurry Image</button>
+                        <button class="preset-btn" data-preset="high_detail" title="Maximizes detail preservation and enhancement">High Detail</button>
+                        <button class="preset-btn" data-preset="low_contrast" title="Improves contrast while maintaining natural look">Low Contrast</button>
+                    </div>
+                </div>
+            </div>
+        
+        <div class="image-container">
+            <div class="image-box">
+                <h3>Original Image</h3>
+                <div class="image-wrapper">
+                    <img id="original-image" src="{{ url_for('static', filename='img/placeholder.png') }}" alt="Original Image">
+                </div>
+            </div>
+            <div class="image-box">
+                <h3>Enhanced Image</h3>
+                <div class="image-wrapper">
+                    <img id="enhanced-image" src="{{ url_for('static', filename='img/placeholder.png') }}" alt="Enhanced Image">
+                </div>
+                <div class="download-btn-container">
+                    <a id="download-btn" href="#" download="enhanced_image.jpg" class="download-btn">Download</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="parameters-section">
+            <h2>Enhancement Parameters</h2>
+            <div class="tabs">
+                <div class="tab-header">
+                    <div class="tab-btn active" data-tab="general">General</div>
+                    <div class="tab-btn" data-tab="noise">Noise Reduction</div>
+                    <div class="tab-btn" data-tab="contrast">Contrast</div>
+                    <div class="tab-btn" data-tab="detail">Detail</div>
+                    <div class="tab-btn" data-tab="final">Final Adjustments</div>
+                </div>
+                
+                <div class="tab-content">
+                    <div class="tab-pane active" id="general-tab">
+                        <div class="param-group">
+                            <label for="window-size">Window Size:</label>
+                            <input type="range" id="window-size" name="window_size" min="3" max="31" step="2" value="15">
+                            <span class="param-value" id="window-size-value">15</span>
+                        </div>
+                        <div class="param-group">
+                            <label for="use-entropy">Use Entropy:</label>
+                            <input type="checkbox" id="use-entropy" name="use_entropy" checked>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane" id="noise-tab">
+                        <div class="param-group">
+                            <label for="denoise">Apply Noise Reduction:</label>
+                            <input type="checkbox" id="denoise" name="denoise" checked>
+                        </div>
+                        <div class="param-group">
+                            <label for="bilateral-strength">Bilateral Strength:</label>
+                            <input type="range" id="bilateral-strength" name="bilateral_strength" min="0.1" max="2" step="0.1" value="1.0">
+                            <span class="param-value" id="bilateral-strength-value">1.0</span>
+                        </div>
+                        <div class="param-group">
+                            <label for="bilateral-diameter">Bilateral Diameter:</label>
+                            <input type="range" id="bilateral-diameter" name="bilateral_diameter" min="5" max="15" step="2" value="9">
+                            <span class="param-value" id="bilateral-diameter-value">9</span>
+                        </div>
+                        <div class="param-group">
+                            <label for="denoise-blend">Denoise Blend Factor:</label>
+                            <input type="range" id="denoise-blend" name="denoise_blend_factor" min="0" max="1" step="0.1" value="0.7">
+                            <span class="param-value" id="denoise-blend-value">0.7</span>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane" id="contrast-tab">
+                        <div class="param-group">
+                            <label for="gamma-min">Gamma Min:</label>
+                            <input type="range" id="gamma-min" name="gamma_min" min="0.1" max="1" step="0.1" value="0.7">
+                            <span class="param-value" id="gamma-min-value">0.7</span>
+                        </div>
+                        <div class="param-group">
+                            <label for="gamma-max">Gamma Max:</label>
+                            <input type="range" id="gamma-max" name="gamma_max" min="1" max="3" step="0.1" value="1.5">
+                            <span class="param-value" id="gamma-max-value">1.5</span>
+                        </div>
+                        <div class="param-group">
+                            <label for="contrast-strength">Contrast Strength:</label>
+                            <input type="range" id="contrast-strength" name="contrast_strength" min="0.5" max="4" step="0.1" value="2.0">
+                            <span class="param-value" id="contrast-strength-value">2.0</span>
+                        </div>
+                        <div class="param-group">
+                            <label for="entropy-factor">Entropy Factor:</label>
+                            <input type="range" id="entropy-factor" name="entropy_factor" min="0" max="1" step="0.1" value="0.3">
+                            <span class="param-value" id="entropy-factor-value">0.3</span>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane" id="detail-tab">
+                        <div class="param-group">
+                            <label for="enhance-details">Enhance Details:</label>
+                            <input type="checkbox" id="enhance-details" name="enhance_details" checked>
+                        </div>
+                        <div class="param-group">
+                            <label for="unsharp-kernel">Unsharp Kernel Size:</label>
+                            <input type="range" id="unsharp-kernel" name="unsharp_kernel_size" min="3" max="9" step="2" value="5">
+                            <span class="param-value" id="unsharp-kernel-value">5</span>
+                        </div>
+                        <div class="param-group">
+                            <label for="unsharp-sigma">Unsharp Sigma:</label>
+                            <input type="range" id="unsharp-sigma" name="unsharp_sigma" min="0.1" max="3" step="0.1" value="1.0">
+                            <span class="param-value" id="unsharp-sigma-value">1.0</span>
+                        </div>
+                        <div class="param-group">
+                            <label for="unsharp-amount">Unsharp Amount:</label>
+                            <input type="range" id="unsharp-amount" name="unsharp_amount" min="0.1" max="3" step="0.1" value="1.0">
+                            <span class="param-value" id="unsharp-amount-value">1.0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane" id="final-tab">
+                        <div class="param-group">
+                            <label for="apply-clahe">Apply CLAHE:</label>
+                            <input type="checkbox" id="apply-clahe" name="apply_clahe" checked>
+                        </div>
+                        <div class="param-group">
+                            <label for="clahe-clip">CLAHE Clip Limit:</label>
+                            <input type="range" id="clahe-clip" name="clahe_clip_limit" min="0.5" max="5" step="0.1" value="2.0">
+                            <span class="param-value" id="clahe-clip-value">2.0</span>
+                        </div>
+                        <div class="param-group">
+                            <label for="clahe-blend">CLAHE Blend:</label>
+                            <input type="range" id="clahe-blend" name="clahe_blend" min="0" max="1" step="0.1" value="0.5">
+                            <span class="param-value" id="clahe-blend-value">0.5</span>
+                        </div>
+                        <div class="param-group">
+                            <label for="apply-high-boost">Apply High Boost:</label>
+                            <input type="checkbox" id="apply-high-boost" name="apply_high_boost" checked>
+                        </div>
+                        <div class="param-group">
+                            <label for="high-boost-factor">High Boost Factor:</label>
+                            <input type="range" id="high-boost-factor" name="high_boost_factor" min="0.5" max="3" step="0.1" value="1.5">
+                            <span class="param-value" id="high-boost-factor-value">1.5</span>
+                        </div>
+                        <div class="param-group">
+                            <label for="high-boost-blend">High Boost Blend:</label>
+                            <input type="range" id="high-boost-blend" name="high_boost_blend" min="0" max="1" step="0.1" value="0.3">
+                            <span class="param-value" id="high-boost-blend-value">0.3</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="apply-btn-container">
+                <button id="apply-btn" disabled>Apply Enhancement</button>
+                <button id="reset-btn">Reset Parameters</button>
+            </div>
+        </div>
+        
+        <!-- Preset section moved to the top -->
+        </div>
+        
+        <!-- History Tab Content -->
+        <div id="history-tab" class="main-tab-content">
+            <div class="history-section">
+                <h2>Enhancement History</h2>
+                <div class="history-controls">
+                    <button id="refresh-history-btn" class="action-btn">Refresh</button>
+                    <button id="clear-history-btn" class="action-btn danger">Clear All</button>
+                </div>
+                <div class="history-list" id="history-list">
+                    <!-- History entries will be loaded here -->
+                    <div class="history-empty">No history entries yet</div>
+                </div>
+            </div>
+            
+            <div class="history-detail" id="history-detail">
+                <div class="history-detail-empty">Select a history entry to view details</div>
+                <div class="history-detail-content" style="display: none;">
+                    <h3 id="history-detail-title">Enhancement Details</h3>
+                    <div class="history-images">
+                        <div class="history-image-box">
+                            <h4>Original Image</h4>
+                            <div class="image-wrapper">
+                                <img id="history-original-image" src="" alt="Original Image">
+                            </div>
+                        </div>
+                        <div class="history-image-box">
+                            <h4>Enhanced Image</h4>
+                            <div class="image-wrapper">
+                                <img id="history-enhanced-image" src="" alt="Enhanced Image">
+                            </div>
+                            <div class="download-btn-container">
+                                <a id="history-download-btn" href="#" download class="download-btn">Download</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="history-parameters">
+                        <h4>Parameters Used</h4>
+                        <div id="history-parameters-list" class="parameters-list">
+                            <!-- Parameters will be loaded here -->
+                        </div>
+                        <div class="history-actions">
+                            <button id="reuse-params-btn" class="action-btn">Reuse These Parameters</button>
+                            <button id="delete-history-btn" class="action-btn danger">Delete Entry</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

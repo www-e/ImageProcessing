@@ -1,4 +1,41 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Morphological filters functionality
+    // Variables for morphological filters
+    let activeMorphologicalFilter = null;
+    const morphologicalSection = document.querySelector('.morphological-section');
+    const morphologicalHeader = document.querySelector('.morphological-section h3');
+    const morphologicalToggle = document.querySelector('.morphological-toggle');
+    const morphologicalContent = document.querySelector('.morphological-content');
+    const morphologicalBtns = document.querySelectorAll('.morphological-btn');
+    const morphologicalParams = document.querySelector('.morphological-params');
+    const kernelSizeInput = document.getElementById('kernel-size');
+    const kernelSizeValue = document.getElementById('kernel-size-value');
+    const iterationsInput = document.getElementById('iterations');
+    const iterationsValue = document.getElementById('iterations-value');
+    const strengthInput = document.getElementById('strength');
+    const strengthValue = document.getElementById('strength-value');
+    const patternSelect = document.getElementById('pattern');
+    const thresholdInput = document.getElementById('threshold');
+    const thresholdValue = document.getElementById('threshold-value');
+    const preserveOriginalCheckbox = document.getElementById('preserve-original');
+    const maxIterationsInput = document.getElementById('max-iterations');
+    const maxIterationsValue = document.getElementById('max-iterations-value');
+    
+    // Variables for enhancement filters
+    let activeEnhancementFilter = null;
+    const enhancementSection = document.querySelector('.enhancement-section');
+    const enhancementHeader = document.querySelector('.enhancement-section h3');
+    const enhancementToggle = document.querySelector('.enhancement-toggle');
+    const enhancementContent = document.querySelector('.enhancement-content');
+    const enhancementBtns = document.querySelectorAll('.enhancement-btn');
+    const enhancementParams = document.querySelector('.enhancement-params');
+    
+    // Advanced options toggles
+    const morphAdvancedToggle = document.querySelector('.morphological-section .advanced-toggle');
+    const morphAdvancedOptions = document.querySelector('.morphological-section .advanced-options');
+    const enhAdvancedToggle = document.querySelector('.enhancement-section .advanced-toggle');
+    const enhAdvancedOptions = document.querySelector('.enhancement-section .advanced-options');
+    const applyMorphologicalBtn = document.getElementById('apply-morphological');
     // Error handling function
     function showError(message) {
         const errorContainer = document.createElement('div');
@@ -95,53 +132,89 @@ document.addEventListener('DOMContentLoaded', function() {
         high_boost_blend: 0.3
     };
     
-    // Preset parameters
+    // Preset parameters - Enhanced for better performance
     const presets = {
         dark_image: {
-            gamma_min: 0.5,
-            gamma_max: 2.0,
-            contrast_strength: 2.5,
-            entropy_factor: 0.4,
-            clahe_clip_limit: 3.0,
-            clahe_blend: 0.7
+            // Optimized for recovering details in dark areas
+            gamma_min: 0.4,            // Lower gamma min to brighten dark areas more
+            gamma_max: 2.2,            // Higher gamma max for better contrast
+            contrast_strength: 2.8,     // Increased contrast strength
+            entropy_factor: 0.5,        // Higher entropy factor for better local adaptation
+            clahe_clip_limit: 3.5,      // Higher clip limit for more aggressive histogram equalization
+            clahe_blend: 0.8,           // Stronger CLAHE blend
+            denoise: true,              // Enable denoising to reduce noise in dark areas
+            bilateral_strength: 0.7,    // Lower bilateral strength to preserve details
+            bilateral_diameter: 7,      // Smaller diameter for finer detail preservation
+            denoise_blend_factor: 0.6,  // Lower blend factor to preserve details
+            high_boost_factor: 1.8      // Higher boost factor for better detail enhancement
         },
         bright_image: {
-            gamma_min: 0.9,
-            gamma_max: 1.2,
-            contrast_strength: 1.5,
-            bilateral_strength: 1.2,
-            high_boost_factor: 1.2
+            // Optimized for recovering details in bright/overexposed areas
+            gamma_min: 0.9,             // Higher gamma min to preserve shadows
+            gamma_max: 1.1,             // Lower gamma max to reduce highlights
+            contrast_strength: 1.2,      // Lower contrast strength to prevent clipping
+            entropy_factor: 0.2,         // Lower entropy factor for smoother transitions
+            bilateral_strength: 1.4,     // Higher bilateral strength for smoother transitions
+            bilateral_diameter: 11,      // Larger diameter for more smoothing
+            denoise_blend_factor: 0.8,   // Higher blend factor for smoother results
+            high_boost_factor: 1.0,      // Lower boost factor to prevent highlight clipping
+            high_boost_blend: 0.2,       // Lower blend to prevent oversharpening
+            clahe_clip_limit: 1.5,       // Lower clip limit to prevent artifacts
+            clahe_blend: 0.4             // Lower blend for subtler effect
         },
         sharp_edges: {
-            window_size: 11,
-            bilateral_strength: 0.8,
-            unsharp_amount: 1.5,
-            high_boost_factor: 2.0,
-            high_boost_blend: 0.5
+            // Optimized for enhancing edge definition
+            window_size: 9,              // Smaller window for finer detail detection
+            bilateral_strength: 0.6,      // Lower bilateral strength to preserve edges
+            bilateral_diameter: 5,        // Smaller diameter for edge preservation
+            unsharp_amount: 2.0,          // Higher unsharp amount for stronger edge enhancement
+            unsharp_sigma: 0.8,           // Lower sigma for finer edge detection
+            high_boost_factor: 2.5,       // Higher boost factor for stronger edge enhancement
+            high_boost_blend: 0.6,        // Higher blend for stronger effect
+            entropy_factor: 0.5,          // Higher entropy factor for better local adaptation
+            contrast_strength: 2.5,       // Higher contrast strength for better edge definition
+            enhance_details: true          // Enable detail enhancement
         },
         blurry_image: {
-            window_size: 9,
-            bilateral_strength: 0.5,
-            unsharp_amount: 2.0,
-            unsharp_sigma: 1.5,
-            high_boost_factor: 2.5,
-            high_boost_blend: 0.6
+            // Optimized for improving focus and reducing blur
+            window_size: 7,               // Smaller window for finer detail detection
+            bilateral_strength: 0.4,       // Lower bilateral strength to preserve details
+            bilateral_diameter: 5,         // Smaller diameter for detail preservation
+            unsharp_amount: 2.5,           // Higher unsharp amount for stronger sharpening
+            unsharp_sigma: 1.0,            // Balanced sigma for good detail enhancement
+            unsharp_kernel_size: 3,        // Smaller kernel for finer detail enhancement
+            high_boost_factor: 2.8,        // Higher boost factor for stronger sharpening
+            high_boost_blend: 0.7,         // Higher blend for stronger effect
+            enhance_details: true,          // Enable detail enhancement
+            clahe_clip_limit: 2.5,         // Higher clip limit for better local contrast
+            clahe_blend: 0.6,              // Higher blend for stronger effect
+            high_boost_blend: 0.6          // Higher blend for stronger effect
         },
         high_detail: {
-            window_size: 7,
-            bilateral_strength: 0.6,
+            window_size: 5,
+            bilateral_strength: 0.4,
             contrast_strength: 1.8,
-            entropy_factor: 0.5,
+            entropy_factor: 0.6,
             unsharp_amount: 1.8,
-            high_boost_factor: 2.0
+            high_boost_factor: 2.2,
+            clahe_clip_limit: 3.0,
+            clahe_blend: 0.7,
+            high_boost_blend: 0.8,
+            enhance_details: true
         },
         low_contrast: {
             contrast_strength: 3.0,
             gamma_min: 0.6,
             gamma_max: 1.8,
-            clahe_clip_limit: 3.5,
+            clahe_clip_limit: 4.0,
             clahe_blend: 0.8,
-            entropy_factor: 0.6
+            entropy_factor: 0.5,
+            bilateral_diameter: 15,
+            bilateral_strength: 1.2,
+            unsharp_amount: 1.2,
+            unsharp_sigma: 1.5,
+            high_boost_factor: 1.8,
+            high_boost_blend: 0.5
         }
     };
     
@@ -161,6 +234,389 @@ document.addEventListener('DOMContentLoaded', function() {
     uploadForm.addEventListener('submit', handleUpload);
     applyBtn.addEventListener('click', applyEnhancement);
     resetBtn.addEventListener('click', resetParameters);
+    
+    // Event listeners for morphological filters section toggle
+    if (morphologicalHeader) {
+        morphologicalHeader.addEventListener('click', () => {
+            morphologicalContent.classList.toggle('expanded');
+            morphologicalToggle.classList.toggle('expanded');
+        });
+    }
+    
+    // Event listeners for enhancement section toggle
+    if (enhancementHeader) {
+        enhancementHeader.addEventListener('click', () => {
+            enhancementContent.classList.toggle('expanded');
+            enhancementToggle.classList.toggle('expanded');
+        });
+    }
+    
+    // Event listener for morphological advanced options toggle
+    if (morphAdvancedToggle) {
+        morphAdvancedToggle.addEventListener('click', () => {
+            morphAdvancedOptions.classList.toggle('expanded');
+            morphAdvancedToggle.textContent = morphAdvancedOptions.classList.contains('expanded') ? 
+                'Hide Advanced Options' : 'Show Advanced Options';
+        });
+    }
+    
+    // Event listener for enhancement advanced options toggle
+    if (enhAdvancedToggle) {
+        enhAdvancedToggle.addEventListener('click', () => {
+            enhAdvancedOptions.classList.toggle('expanded');
+            enhAdvancedToggle.textContent = enhAdvancedOptions.classList.contains('expanded') ? 
+                'Hide Advanced Options' : 'Show Advanced Options';
+        });
+    }
+    
+    // Event listeners for morphological filters
+    morphologicalBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Remove active class from all buttons
+            morphologicalBtns.forEach(b => b.classList.remove('active'));
+            
+            // Add active class to clicked button
+            btn.classList.add('active');
+            
+            // Set active filter
+            activeMorphologicalFilter = btn.dataset.filter;
+            
+            // Show parameters
+            morphologicalParams.classList.add('active');
+            
+            // Show/hide conditional parameters based on filter type
+            updateConditionalParams(activeMorphologicalFilter);
+        });
+    });
+    
+    // Function to update conditional parameters based on filter type
+    function updateConditionalParams(filterType) {
+        // Hide all conditional params first
+        document.querySelectorAll('.conditional-param').forEach(param => {
+            param.classList.remove('visible');
+        });
+        
+        // Show relevant parameters based on filter type
+        switch (filterType) {
+            case 'tophat':
+            case 'blackhat':
+            case 'gradient':
+                document.getElementById('strength-group').classList.add('visible');
+                break;
+            case 'hitmiss':
+                document.getElementById('pattern-group').classList.add('visible');
+                break;
+            case 'thinning':
+            case 'thickening':
+            case 'skeleton':
+                document.getElementById('threshold-group').classList.add('visible');
+                document.getElementById('preserve-original-group').classList.add('visible');
+                if (filterType === 'skeleton' || filterType === 'thinning') {
+                    document.getElementById('max-iterations-group').classList.add('visible');
+                }
+                break;
+        }
+    }
+    
+    // Event listeners for enhancement filters
+    enhancementBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Remove active class from all buttons
+            enhancementBtns.forEach(b => b.classList.remove('active'));
+            
+            // Add active class to clicked button
+            btn.classList.add('active');
+            
+            // Set active filter
+            activeEnhancementFilter = btn.dataset.filter;
+            
+            // Show parameters
+            enhancementParams.classList.add('visible');
+            
+            // Show/hide conditional parameters based on filter type
+            document.querySelectorAll('.enhancement-param-group').forEach(group => {
+                group.style.display = 'none';
+            });
+            
+            // Show specific parameters based on filter type
+            switch(activeEnhancementFilter) {
+                case 'brightness_contrast':
+                    document.getElementById('brightness-group').style.display = 'flex';
+                    document.getElementById('contrast-group').style.display = 'flex';
+                    break;
+                case 'exposure':
+                    document.getElementById('exposure-group').style.display = 'flex';
+                    document.getElementById('highlights-group').style.display = 'flex';
+                    document.getElementById('shadows-group').style.display = 'flex';
+                    break;
+                case 'vibrance':
+                    document.getElementById('vibrance-group').style.display = 'flex';
+                    document.getElementById('saturation-group').style.display = 'flex';
+                    break;
+                case 'clarity':
+                    document.getElementById('clarity-group').style.display = 'flex';
+                    document.getElementById('edge-kernel-group').style.display = 'flex';
+                    document.getElementById('edge-scale-group').style.display = 'flex';
+                    break;
+                case 'shadows_highlights':
+                    document.getElementById('shadows-recovery-group').style.display = 'flex';
+                    document.getElementById('highlights-recovery-group').style.display = 'flex';
+                    document.getElementById('mid-tone-contrast-group').style.display = 'flex';
+                    break;
+            }
+        });
+    });
+    
+    // Event listeners - Morphological parameters
+    if (kernelSizeInput) {
+        kernelSizeInput.addEventListener('input', () => {
+            kernelSizeValue.textContent = kernelSizeInput.value;
+        });
+    }
+    
+    if (iterationsInput) {
+        iterationsInput.addEventListener('input', () => {
+            iterationsValue.textContent = iterationsInput.value;
+        });
+    }
+    
+    if (strengthInput) {
+        strengthInput.addEventListener('input', () => {
+            strengthValue.textContent = strengthInput.value;
+        });
+    }
+    
+    if (thresholdInput) {
+        thresholdInput.addEventListener('input', () => {
+            thresholdValue.textContent = thresholdInput.value;
+        });
+    }
+    
+    if (maxIterationsInput) {
+        maxIterationsInput.addEventListener('input', () => {
+            maxIterationsValue.textContent = maxIterationsInput.value;
+        });
+    }
+    
+    // Event listeners - Enhancement parameters
+    // Helper function to update slider value displays
+    function setupSliderValueDisplay(sliderId, valueId) {
+        const slider = document.getElementById(sliderId);
+        const valueDisplay = document.getElementById(valueId);
+        if (slider && valueDisplay) {
+            slider.addEventListener('input', () => {
+                valueDisplay.textContent = slider.value;
+            });
+        }
+    }
+    
+    // Setup all enhancement sliders
+    setupSliderValueDisplay('brightness', 'brightness-value');
+    setupSliderValueDisplay('contrast', 'contrast-value');
+    setupSliderValueDisplay('exposure', 'exposure-value');
+    setupSliderValueDisplay('highlights', 'highlights-value');
+    setupSliderValueDisplay('shadows', 'shadows-value');
+    setupSliderValueDisplay('vibrance', 'vibrance-value');
+    setupSliderValueDisplay('saturation', 'saturation-value');
+    setupSliderValueDisplay('clarity', 'clarity-value');
+    setupSliderValueDisplay('edge-kernel', 'edge-kernel-value');
+    setupSliderValueDisplay('edge-scale', 'edge-scale-value');
+    setupSliderValueDisplay('shadows-recovery', 'shadows-recovery-value');
+    setupSliderValueDisplay('highlights-recovery', 'highlights-recovery-value');
+    setupSliderValueDisplay('mid-tone-contrast', 'mid-tone-contrast-value');
+    setupSliderValueDisplay('clahe-clip', 'clahe-clip-value');
+    setupSliderValueDisplay('clahe-grid', 'clahe-grid-value');
+    
+    // Apply morphological filter button
+    if (applyMorphologicalBtn) {
+        applyMorphologicalBtn.addEventListener('click', applyMorphologicalFilter);
+    }
+    
+    // Apply enhancement filter button
+    if (applyEnhancementBtn) {
+        applyEnhancementBtn.addEventListener('click', applyEnhancementFilter);
+    }
+    
+    // Function to apply morphological filter
+    function applyMorphologicalFilter() {
+        if (!activeMorphologicalFilter) {
+            showError('Please select a morphological filter first');
+            return;
+        }
+        
+        if (!currentImage) {
+            showError('Please upload an image first');
+            return;
+        }
+        
+        // Get parameters
+        const params = {
+            filter_type: activeMorphologicalFilter,
+            kernel_size: parseInt(kernelSizeInput.value),
+            iterations: parseInt(iterationsInput.value)
+        };
+        
+        // Add conditional parameters based on filter type
+        switch(activeMorphologicalFilter) {
+            case 'white_tophat':
+            case 'black_tophat':
+                params.strength = parseFloat(strengthInput.value);
+                break;
+            case 'morphological_gradient':
+                params.strength = parseFloat(strengthInput.value);
+                params.preserve_original = preserveOriginalCheckbox.checked;
+                break;
+            case 'hit_miss_transform':
+                params.pattern = patternSelect.value;
+                break;
+            case 'thinning':
+            case 'thickening':
+                params.max_iterations = parseInt(maxIterationsInput.value);
+                params.threshold = parseInt(thresholdInput.value);
+                break;
+            case 'skeletonization':
+                params.threshold = parseInt(thresholdInput.value);
+                break;
+        }
+        
+        // Show loading spinner
+        document.getElementById('loading-spinner').style.display = 'flex';
+        
+        // Send request to server
+        fetch('/apply_morphological', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(params)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                showError(data.error);
+            } else {
+                // Update result image
+                const resultImg = document.getElementById('result-image');
+                resultImg.src = data.result_image + '?t=' + new Date().getTime(); // Add timestamp to prevent caching
+                resultImg.style.display = 'block';
+                
+                // Show result section
+                document.getElementById('result-section').style.display = 'block';
+                
+                // Scroll to result
+                document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
+            }
+        })
+        .catch(error => {
+            showError('Error applying filter: ' + error.message);
+        })
+        .finally(() => {
+            // Hide loading spinner
+            document.getElementById('loading-spinner').style.display = 'none';
+        });
+    }
+    
+    // Function to apply enhancement filter
+    function applyEnhancementFilter() {
+        if (!activeEnhancementFilter) {
+            showError('Please select an enhancement filter first');
+            return;
+        }
+        
+        if (!currentImage) {
+            showError('Please upload an image first');
+            return;
+        }
+        
+        // Get parameters based on the active enhancement filter
+        const params = {
+            filter_type: activeEnhancementFilter
+        };
+        
+        // Add conditional parameters based on filter type
+        switch(activeEnhancementFilter) {
+            case 'brightness_contrast':
+                params.brightness = parseFloat(document.getElementById('brightness').value);
+                params.contrast = parseFloat(document.getElementById('contrast').value);
+                break;
+            case 'exposure':
+                params.exposure = parseFloat(document.getElementById('exposure').value);
+                params.highlights = parseFloat(document.getElementById('highlights').value);
+                params.shadows = parseFloat(document.getElementById('shadows').value);
+                break;
+            case 'vibrance':
+                params.vibrance = parseFloat(document.getElementById('vibrance').value);
+                params.saturation = parseFloat(document.getElementById('saturation').value);
+                break;
+            case 'clarity':
+                params.clarity = parseFloat(document.getElementById('clarity').value);
+                params.edge_kernel = parseInt(document.getElementById('edge-kernel').value);
+                params.edge_scale = parseFloat(document.getElementById('edge-scale').value);
+                
+                // Advanced options if available
+                if (document.getElementById('apply-clahe')) {
+                    params.apply_clahe = document.getElementById('apply-clahe').checked;
+                }
+                if (document.getElementById('clahe-clip')) {
+                    params.clahe_clip = parseFloat(document.getElementById('clahe-clip').value);
+                }
+                if (document.getElementById('clahe-grid')) {
+                    params.clahe_grid = parseInt(document.getElementById('clahe-grid').value);
+                }
+                break;
+            case 'shadows_highlights':
+                params.shadows_recovery = parseFloat(document.getElementById('shadows-recovery').value);
+                params.highlights_recovery = parseFloat(document.getElementById('highlights-recovery').value);
+                params.mid_tone_contrast = parseFloat(document.getElementById('mid-tone-contrast').value);
+                break;
+        }
+        
+        // Show loading spinner
+        document.getElementById('loading-spinner').style.display = 'flex';
+        
+        // Send request to server
+        fetch('/apply_enhancement', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(params)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                showError(data.error);
+            } else {
+                // Update result image
+                const resultImg = document.getElementById('result-image');
+                resultImg.src = data.result_image + '?t=' + new Date().getTime(); // Add timestamp to prevent caching
+                resultImg.style.display = 'block';
+                
+                // Show result section
+                document.getElementById('result-section').style.display = 'block';
+                
+                // Scroll to result
+                document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
+            }
+        })
+        .catch(error => {
+            showError('Error applying enhancement: ' + error.message);
+        })
+        .finally(() => {
+            // Hide loading spinner
+            document.getElementById('loading-spinner').style.display = 'none';
+        });
+    }
     
     // Event listeners - Main tabs
     mainTabs.forEach(tab => {
@@ -1024,40 +1480,46 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function applyPreset(presetName) {
-        if (!presets.hasOwnProperty(presetName)) {
-            console.error(`Preset "${presetName}" not found.`);
+        if (!presets[presetName]) {
+            showError('Invalid preset');
             return;
         }
         
-        // Update active preset UI
-        updateActivePreset(presetName);
-        
-        // Apply preset parameters
         const preset = presets[presetName];
         
-        // Start with default parameters
-        currentParams = {...defaultParams};
-        
-        // Override with preset parameters
-        Object.keys(preset).forEach(key => {
-            currentParams[key] = preset[key];
-        });
-        
-        // Add preset name to parameters
-        currentParams.preset = presetName;
-        activePreset = presetName;
-        
-        // Update UI to reflect preset values
-        document.querySelectorAll('input[type="range"]').forEach(input => {
-            const paramName = input.name;
-            if (currentParams.hasOwnProperty(paramName)) {
-                input.value = currentParams[paramName];
-                const valueSpan = document.getElementById(`${input.id}-value`);
-                if (valueSpan) {
-                    valueSpan.textContent = currentParams[paramName];
+        // Apply preset parameters to the form
+        for (const [key, value] of Object.entries(preset)) {
+            // Skip comments (properties that start with '//')
+            if (typeof value === 'string' && value.startsWith('//')) continue;
+            
+            // Skip function values or other non-primitive types
+            if (typeof value === 'function' || (typeof value === 'object' && value !== null)) continue;
+            
+            const input = document.getElementById(key.replace(/_/g, '-'));
+            if (input) {
+                if (typeof value === 'boolean') {
+                    // Handle checkboxes
+                    input.checked = value;
+                } else {
+                    // Handle numeric inputs
+                    input.value = value;
+                    // Trigger input event to update displayed values
+                    const event = new Event('input');
+                    input.dispatchEvent(event);
                 }
             }
-        });
+        }
+        
+        // Show success message
+        const successMsg = document.createElement('div');
+        successMsg.className = 'success-message';
+        successMsg.textContent = `Applied ${presetName.replace('_', ' ')} preset`;
+        document.body.appendChild(successMsg);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            successMsg.remove();
+        }, 3000);
         
         document.querySelectorAll('input[type="checkbox"]').forEach(input => {
             const paramName = input.name;

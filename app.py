@@ -11,6 +11,18 @@ from werkzeug.utils import secure_filename
 from datetime import datetime
 
 from filters.adaptive_enhancement import AdaptiveContrastEnhancement
+from filters.basic_filters import gaussian_blur, average_blur, median_blur
+from filters.advanced_filters import clahe_filter, local_contrast_enhancement, adaptive_gamma_correction
+from filters.enhancement_filters import (
+    apply_brightness_contrast, apply_exposure, apply_vibrance,
+    apply_clarity, apply_shadows_highlights
+)
+from filters.black_tophat import apply_black_tophat
+from filters.morphological_gradient import apply_morphological_gradient
+from filters.hit_miss_transform import apply_hit_miss_transform
+from filters.thinning import apply_thinning
+from filters.thickening import apply_thickening
+from filters.skeletonization import apply_skeletonization
 from utils.image_utils import load_image, save_image
 from utils.history_manager import HistoryManager
 from utils.image_optimizer import compress_image, estimate_processing_time, analyze_image, clear_image_cache
@@ -486,6 +498,343 @@ def clear_cache():
     except Exception as e:
         print(f"Error clearing cache: {str(e)}")
         return jsonify(success=False, error=f'Error clearing cache: {str(e)}')
+
+@app.route('/apply_morphological', methods=['POST'])
+def apply_morphological():
+    """Apply morphological filter to an image."""
+    try:
+        data = request.json
+        
+        # Check if an image is uploaded
+        if not os.listdir(UPLOAD_FOLDER):
+            return jsonify({'error': 'No image uploaded'})
+        
+        # Get the latest uploaded image
+        latest_file = max([os.path.join(UPLOAD_FOLDER, f) for f in os.listdir(UPLOAD_FOLDER)], key=os.path.getctime)
+        filename = os.path.basename(latest_file)
+        
+        # Get filter parameters
+        filter_type = data.get('filter_type')
+        kernel_size = data.get('kernel_size', 3)
+        iterations = data.get('iterations', 1)
+        
+        # Additional parameters based on filter type
+        strength = data.get('strength', 1.0)
+        pattern = data.get('pattern', 'cross')
+        threshold = data.get('threshold', 128)
+        preserve_original = data.get('preserve_original', False)
+        max_iterations = data.get('max_iterations', 10)
+        
+        # Create a task ID
+        task_id = f"morph_{int(time.time())}"
+        
+        # Create a processing task
+        params = {
+            'filter_type': filter_type,
+            'kernel_size': kernel_size,
+            'iterations': iterations,
+            'strength': strength,
+            'pattern': pattern,
+            'threshold': threshold,
+            'preserve_original': preserve_original,
+            'max_iterations': max_iterations
+        }
+        
+        # Estimate processing time
+        image_path = os.path.join(UPLOAD_FOLDER, filename)
+        estimated_time = estimate_processing_time(image_path, window_size=kernel_size)
+        
+        # Create a task object
+        task = ProcessingTask(task_id, filename, params)
+        task.estimated_time = estimated_time
+        processing_tasks[task_id] = task
+        
+        # Start processing in a background thread
+        thread = threading.Thread(
+            target=process_morphological_task,
+            args=(task_id, image_path, filename, params, False, data)
+        )
+        thread.daemon = True
+        thread.start()
+        
+        # Return task ID for status polling
+        return jsonify({
+            'success': True,
+            'task_id': task_id,
+            'estimated_time': task.estimated_time
+        })
+    except Exception as e:
+        print(f"Error applying morphological filter: {str(e)}")
+        return jsonify({'success': False, 'error': f'Server error: {str(e)}'})
+
+@app.route('/apply_enhancement', methods=['POST'])
+def apply_enhancement():
+    """Apply enhancement filter to an image."""
+    try:
+        data = request.json
+        
+        # Check if an image is uploaded
+        if not os.listdir(UPLOAD_FOLDER):
+            return jsonify({'error': 'No image uploaded'})
+        
+        # Get the latest uploaded image
+        latest_file = max([os.path.join(UPLOAD_FOLDER, f) for f in os.listdir(UPLOAD_FOLDER)], key=os.path.getctime)
+        filename = os.path.basename(latest_file)
+        
+        # Get filter parameters
+        filter_type = data.get('filter_type')
+        
+        # Create a task ID
+        task_id = f"enhance_{int(time.time())}"
+        
+        # Create a processing task with filter-specific parameters
+        params = {'filter_type': filter_type}
+        
+        # Add parameters based on filter type
+        if filter_type == 'brightness_contrast':
+            params['brightness'] = data.get('brightness', 0.0)
+            params['contrast'] = data.get('contrast', 1.0)
+        elif filter_type == 'exposure':
+            params['exposure'] = data.get('exposure', 0.0)
+            params['highlights'] = data.get('highlights', 0.0)
+            params['shadows'] = data.get('shadows', 0.0)
+        elif filter_type == 'vibrance':
+            params['vibrance'] = data.get('vibrance', 0.0)
+            params['saturation'] = data.get('saturation', 0.0)
+        elif filter_type == 'clarity':
+            params['clarity'] = data.get('clarity', 0.0)
+            params['edge_kernel'] = data.get('edge_kernel', 3)
+            params['edge_scale'] = data.get('edge_scale', 1.0)
+            params['apply_clahe'] = data.get('apply_clahe', True)
+            params['clahe_clip'] = data.get('clahe_clip', 2.0)
+            params['clahe_grid'] = data.get('clahe_grid', 8)
+        elif filter_type == 'shadows_highlights':
+            params['shadows_recovery'] = data.get('shadows_recovery', 0.0)
+            params['highlights_recovery'] = data.get('highlights_recovery', 0.0)
+            params['mid_tone_contrast'] = data.get('mid_tone_contrast', 0.0)
+        
+        # Estimate processing time
+        image_path = os.path.join(UPLOAD_FOLDER, filename)
+        estimated_time = estimate_processing_time(image_path, window_size=5)
+        
+        # Create a task object
+        task = ProcessingTask(task_id, filename, params)
+        task.estimated_time = estimated_time
+        processing_tasks[task_id] = task
+        
+        # Start processing in a background thread
+        thread = threading.Thread(
+            target=process_enhancement_task,
+            args=(task_id, image_path, filename, params, False, data)
+        )
+        thread.daemon = True
+        thread.start()
+        
+        # Return task ID for status polling
+        return jsonify({
+            'success': True,
+            'task_id': task_id,
+            'estimated_time': task.estimated_time
+        })
+    except Exception as e:
+        print(f"Error applying enhancement filter: {str(e)}")
+        return jsonify({'success': False, 'error': f'Server error: {str(e)}'})
+
+def process_morphological_task(task_id, image_path, filename, params, use_compressed, data):
+    """Process a morphological filter task in the background."""
+    # ... (rest of the code remains the same)
+    if not task:
+        return
+    
+    try:
+        # Update progress
+        task.progress = 10
+        
+        # Load the image
+        try:
+            image = load_image(image_path)
+            task.progress = 20
+        except Exception as e:
+            print(f"Error loading image: {str(e)}")
+            task.status = 'failed'
+            task.error = f'Error loading image: {str(e)}'
+            return
+        
+        # Apply morphological filter
+        try:
+            filter_type = params.get('filter_type')
+            
+            # Select the appropriate filter function
+            if filter_type == 'dilation':
+                enhanced = apply_dilation(image, params)
+            elif filter_type == 'erosion':
+                enhanced = apply_erosion(image, params)
+            elif filter_type == 'opening':
+                enhanced = apply_opening(image, params)
+            elif filter_type == 'closing':
+                enhanced = apply_closing(image, params)
+            elif filter_type == 'tophat':
+                enhanced = apply_tophat(image, params)
+            elif filter_type == 'blackhat':
+                enhanced = apply_black_tophat(image, params)
+            elif filter_type == 'gradient':
+                enhanced = apply_morphological_gradient(image, params)
+            elif filter_type == 'hitmiss':
+                enhanced = apply_hit_miss_transform(image, params)
+            elif filter_type == 'thinning':
+                enhanced = apply_thinning(image, params)
+            elif filter_type == 'thickening':
+                enhanced = apply_thickening(image, params)
+            elif filter_type == 'skeleton':
+                enhanced = apply_skeletonization(image, params)
+            else:
+                raise ValueError(f"Unknown filter type: {filter_type}")
+            
+            task.progress = 80
+            
+            # Free memory
+            del image
+            gc.collect()
+        except Exception as e:
+            print(f"Error applying morphological filter: {str(e)}")
+            task.status = 'failed'
+            task.error = f'Error applying filter: {str(e)}'
+            return
+        
+        # Save the result with a unique timestamp to prevent overwriting
+        timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+        result_filename = f"morph_{filter_type}_{timestamp}_{filename}"
+        result_path = os.path.join(RESULT_FOLDER, result_filename)
+        
+        try:
+            save_image(enhanced, result_path)
+            task.progress = 90
+            
+            # Free memory
+            del enhanced
+            gc.collect()
+        except Exception as e:
+            print(f"Error saving result: {str(e)}")
+            task.status = 'failed'
+            task.error = f'Error saving result: {str(e)}'
+            return
+        
+        # Add to history
+        try:
+            # Add filter type to params
+            params['filter_type'] = filter_type
+            params['is_morphological'] = True
+                
+            history_id = history_manager.add_entry(filename, result_filename, params)
+            task.history_id = history_id
+            task.progress = 95
+        except Exception as e:
+            print(f"Error adding to history: {str(e)}")
+            # Continue even if history fails
+        
+        # Update task status
+        task.status = 'completed'
+        task.result_filename = result_filename
+        task.progress = 100
+    except Exception as e:
+        print(f"Unexpected error in process_morphological_task: {str(e)}")
+        task.status = 'failed'
+        task.error = f'Server error: {str(e)}'
+    finally:
+        # Make sure to clean up memory
+        gc.collect()
+
+def process_enhancement_task(task_id, image_path, filename, params, use_compressed, data):
+    """Process an enhancement filter task in the background."""
+    task = processing_tasks.get(task_id)
+    if not task:
+        return
+    
+    try:
+        # Update progress
+        task.progress = 10
+        
+        # Load the image
+        try:
+            image = load_image(image_path)
+            task.progress = 20
+        except Exception as e:
+            print(f"Error loading image: {str(e)}")
+            task.status = 'failed'
+            task.error = f'Error loading image: {str(e)}'
+            return
+        
+        # Apply enhancement filter
+        try:
+            filter_type = params.get('filter_type')
+            
+            # Select the appropriate filter function
+            if filter_type == 'brightness_contrast':
+                enhanced = apply_brightness_contrast(image, params)
+            elif filter_type == 'exposure':
+                enhanced = apply_exposure(image, params)
+            elif filter_type == 'vibrance':
+                enhanced = apply_vibrance(image, params)
+            elif filter_type == 'clarity':
+                enhanced = apply_clarity(image, params)
+            elif filter_type == 'shadows_highlights':
+                enhanced = apply_shadows_highlights(image, params)
+            else:
+                raise ValueError(f"Unknown enhancement filter type: {filter_type}")
+            
+            task.progress = 80
+            
+            # Free memory
+            del image
+            gc.collect()
+        except Exception as e:
+            print(f"Error applying enhancement filter: {str(e)}")
+            task.status = 'failed'
+            task.error = f'Error applying filter: {str(e)}'
+            return
+        
+        # Save the result with a unique timestamp to prevent overwriting
+        timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+        result_filename = f"enhance_{filter_type}_{timestamp}_{filename}"
+        result_path = os.path.join(RESULT_FOLDER, result_filename)
+        
+        try:
+            save_image(enhanced, result_path)
+            task.progress = 90
+            
+            # Free memory
+            del enhanced
+            gc.collect()
+        except Exception as e:
+            print(f"Error saving result: {str(e)}")
+            task.status = 'failed'
+            task.error = f'Error saving result: {str(e)}'
+            return
+        
+        # Add to history
+        try:
+            # Add filter type to params
+            params['filter_type'] = filter_type
+            params['is_enhancement'] = True
+                
+            history_id = history_manager.add_entry(filename, result_filename, params)
+            task.history_id = history_id
+            task.progress = 95
+        except Exception as e:
+            print(f"Error adding to history: {str(e)}")
+            # Continue even if history fails
+        
+        # Update task status
+        task.status = 'completed'
+        task.result_filename = result_filename
+        task.progress = 100
+    except Exception as e:
+        print(f"Unexpected error in process_enhancement_task: {str(e)}")
+        task.status = 'failed'
+        task.error = f'Server error: {str(e)}'
+    finally:
+        # Make sure to clean up memory
+        gc.collect()
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

@@ -24,9 +24,43 @@ class AdaptiveContrastEnhancement:
     that dynamically adjust based on local image characteristics.
     """
     
-    def __init__(self):
-        """Initialize the enhancement pipeline."""
-        pass
+    def __init__(self, window_size=15, clip_limit=3.0, disable_entropy=False, use_simplified_processing=False, max_processing_dimension=1200):
+        """Initialize the enhancement pipeline with performance parameters.
+        
+        Args:
+            window_size: Size of the local window for adaptive processing
+            clip_limit: Limits the contrast enhancement to prevent noise amplification
+            disable_entropy: When true, skips entropy calculation for faster processing
+            use_simplified_processing: When true, uses a simplified processing path for better performance
+            max_processing_dimension: Maximum dimension for processing (images will be resized if larger)
+        """
+        self.window_size = window_size
+        self.clip_limit = clip_limit
+        self.disable_entropy = disable_entropy
+        self.progress_callback = None
+        
+        # Performance optimization flags
+        self.use_simplified_processing = use_simplified_processing
+        self.max_processing_dimension = max_processing_dimension
+    
+    def set_progress_callback(self, callback):
+        """
+        Set a callback function to report progress during enhancement.
+        
+        Args:
+            callback: Function that takes a progress value (0-1) as argument
+        """
+        self.progress_callback = callback
+    
+    def update_progress(self, progress):
+        """
+        Update progress and call the progress callback if set.
+        
+        Args:
+            progress: Progress value (0-1)
+        """
+        if self.progress_callback:
+            self.progress_callback(progress)
     
     def enhance(self, image, params=None):
         """
@@ -41,33 +75,49 @@ class AdaptiveContrastEnhancement:
         Returns:
             Enhanced image
         """
+        # Initialize parameters
         if params is None:
-            params = self.get_default_params()
+            params = {}
+        
+        # Use class parameters if not provided in params
+        window_size = params.get('window_size', self.window_size)
+        clip_limit = params.get('clip_limit', self.clip_limit)
+        disable_entropy = params.get('disable_entropy', self.disable_entropy)
+        use_simplified = params.get('simplified_processing', self.use_simplified_processing)
+        max_dimension = params.get('max_processing_dimension', self.max_processing_dimension)
+        
+        # Report initial progress
+        self.update_progress(0.05)
         
         # Performance optimization: Resize large images for faster processing
         original_size = None
-        max_dimension = params.get('max_processing_dimension', 1200)
         h, w = image.shape[:2]
         
         # Only resize if image is larger than the max dimension
         if max(h, w) > max_dimension:
+            print(f"Resizing image from {w}x{h} to fit within {max_dimension}px for faster processing")
             scale = max_dimension / max(h, w)
             new_size = (int(w * scale), int(h * scale))
             original_size = (w, h)  # Store original size for later upscaling
             image = cv2.resize(image, new_size, interpolation=cv2.INTER_AREA)
+            print(f"Resized to {new_size[0]}x{new_size[1]}")
+        
+        self.update_progress(0.1)
         
         # Make a copy of the input image and convert to float32 for processing
         result = image.copy().astype(np.float32)
         
         # Check if we should use simplified processing for extreme performance
-        simplified_processing = params.get('simplified_processing', False)
+        # Use the class parameter if not provided in params
         
-        if simplified_processing:
+        if use_simplified:
             print("Using simplified processing mode for extreme performance")
             # For extreme performance, use a very simple enhancement approach
             # This bypasses most of the complex calculations
             
             # Convert to LAB color space for better perceptual enhancement
+            self.update_progress(0.15)
+            
             if len(result.shape) > 2:  # Color image
                 # Convert BGR to LAB
                 lab = cv2.cvtColor(result.astype(np.uint8), cv2.COLOR_BGR2LAB)
@@ -75,9 +125,13 @@ class AdaptiveContrastEnhancement:
                 # Split channels
                 l, a, b = cv2.split(lab)
                 
+                self.update_progress(0.25)
+                
                 # Apply CLAHE to L channel only (much faster than full adaptive enhancement)
-                clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
+                clahe = cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=(8, 8))
                 l = clahe.apply(l)
+                
+                self.update_progress(0.40)
                 
                 # Merge channels back
                 enhanced_lab = cv2.merge((l, a, b))
@@ -85,6 +139,8 @@ class AdaptiveContrastEnhancement:
                 # Convert back to BGR
                 result = cv2.cvtColor(enhanced_lab, cv2.COLOR_LAB2BGR).astype(np.float32)
                 
+                self.update_progress(0.60)
+                
                 # Apply a simple sharpening if requested
                 if params.get('sharpen', True):
                     kernel = np.array([[-1, -1, -1],
@@ -96,12 +152,22 @@ class AdaptiveContrastEnhancement:
                 if original_size:
                     result = cv2.resize(result, original_size, interpolation=cv2.INTER_LINEAR)
                 
-                return clip_and_normalize(result)
+                self.update_progress(0.90)
+                
+                # Final normalization
+                result = clip_and_normalize(result)
+                
+                self.update_progress(1.0)
+                return result
             else:  # Grayscale image
+                self.update_progress(0.20)
+                
                 # Apply CLAHE directly
-                clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
+                clahe = cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=(8, 8))
                 result = clahe.apply(result.astype(np.uint8)).astype(np.float32)
                 
+                self.update_progress(0.50)
+                
                 # Apply a simple sharpening if requested
                 if params.get('sharpen', True):
                     kernel = np.array([[-1, -1, -1],
@@ -109,54 +175,82 @@ class AdaptiveContrastEnhancement:
                                       [-1, -1, -1]])
                     result = cv2.filter2D(result, -1, kernel)
                 
+                self.update_progress(0.75)
+                
                 # Upscale back to original size if we resized earlier
                 if original_size:
                     result = cv2.resize(result, original_size, interpolation=cv2.INTER_LINEAR)
                 
-                return clip_and_normalize(result)
+                self.update_progress(0.90)
+                
+                # Final normalization
+                result = clip_and_normalize(result)
+                
+                self.update_progress(1.0)
+                return result
         
         # Standard processing path (if not using simplified mode)
-        # Calculate local statistics with optimized window size
-        window_size = params.get('window_size', 15)
+        self.update_progress(0.15)
+        print("Using standard high-quality processing path")
+        
+        # We already have window_size from class parameters
         # For very large images, increase window size for better performance
         if original_size and max(original_size) > 2000:
             window_size = max(window_size, 21)  # Larger window = fewer calculations
+            print(f"Using larger window size {window_size} for better performance")
         
         # Handle color images properly to avoid broadcasting errors
         if len(result.shape) > 2:  # Color image
             # Process each channel separately to avoid broadcasting issues
+            self.update_progress(0.20)
+            print(f"Processing color image with window size {window_size}")
+            
             channels = cv2.split(result)
             local_mean_channels = []
             local_std_channels = []
             
-            for channel in channels:
+            # Process each channel with progress updates
+            for i, channel in enumerate(channels):
+                self.update_progress(0.25 + (i * 0.05))  # Progress from 0.25 to 0.35
                 mean, std = calculate_local_statistics(channel, window_size)
                 local_mean_channels.append(mean)
                 local_std_channels.append(std)
                 
             # Combine channels
+            self.update_progress(0.40)
             local_mean = cv2.merge(local_mean_channels)
             local_std = cv2.merge(local_std_channels)
         else:  # Grayscale image
+            self.update_progress(0.20)
+            print(f"Processing grayscale image with window size {window_size}")
             local_mean, local_std = calculate_local_statistics(result, window_size)
+            self.update_progress(0.40)
         
         # Calculate local entropy if needed - with additional performance optimizations
-        use_entropy = params.get('use_entropy', True)
+        self.update_progress(0.45)
+        
+        # Use the class parameter for disable_entropy if not provided in params
+        use_entropy = not disable_entropy and params.get('use_entropy', True)
         
         # Skip entropy calculation for very large images or if explicitly disabled
         if not use_entropy or (original_size and max(original_size) > 2500):
             # Create a dummy entropy map if entropy is not used
             local_entropy = np.ones_like(local_mean) * 0.5
             print("Entropy calculation skipped for performance reasons")
+            self.update_progress(0.55)  # Skip ahead in progress
         else:
             # For large but not huge images, use a larger window size for entropy
             entropy_window_size = window_size
             if original_size and max(original_size) > 1800:
                 entropy_window_size = min(31, window_size * 2)  # Larger window for better performance
+                print(f"Using larger entropy window size {entropy_window_size} for better performance")
+            
+            self.update_progress(0.50)
             
             # Handle entropy calculation for color images properly
             if len(result.shape) > 2:  # Color image
                 # Convert to grayscale for entropy calculation (faster and sufficient)
+                print("Calculating entropy for color image (using grayscale conversion)")
                 gray = cv2.cvtColor(result.astype(np.uint8), cv2.COLOR_BGR2GRAY)
                 entropy_map = calculate_local_entropy(gray, entropy_window_size)
                 
@@ -164,27 +258,46 @@ class AdaptiveContrastEnhancement:
                 local_entropy = np.expand_dims(entropy_map, axis=2)
                 local_entropy = np.repeat(local_entropy, 3, axis=2)  # Repeat for each channel
             else:  # Grayscale image
+                print(f"Calculating entropy for grayscale image with window size {entropy_window_size}")
                 local_entropy = calculate_local_entropy(result, entropy_window_size)
+            
+            self.update_progress(0.60)
         
         # Apply noise reduction if enabled
         if params.get('denoise', True):
+            self.update_progress(0.65)
+            print("Applying adaptive noise reduction")
             result = self._apply_noise_reduction(result, local_std, params)
         
         # Apply adaptive enhancement based on local statistics
+        self.update_progress(0.70)
+        print("Applying adaptive contrast enhancement")
         result = self._apply_adaptive_enhancement(result, local_mean, local_std, local_entropy, params)
         
         # Apply detail enhancement if enabled
         if params.get('enhance_details', True):
+            self.update_progress(0.80)
+            print("Enhancing image details")
             result = self._apply_detail_enhancement(result, local_std, params)
         
         # Apply final adjustments
+        self.update_progress(0.85)
+        print("Applying final adjustments")
         result = self._apply_final_adjustments(result, params)
         
         # Upscale back to original size if we resized earlier
         if original_size:
+            self.update_progress(0.90)
+            print(f"Upscaling image back to original size {original_size[0]}x{original_size[1]}")
             result = cv2.resize(result, original_size, interpolation=cv2.INTER_LINEAR)
         
-        return clip_and_normalize(result)
+        self.update_progress(0.95)
+        print("Finalizing image")
+        result = clip_and_normalize(result)
+        
+        self.update_progress(1.0)
+        print("Enhancement complete")
+        return result
     
     def _apply_noise_reduction(self, image, local_std, params):
         """
@@ -392,26 +505,17 @@ class AdaptiveContrastEnhancement:
         return image
     
     def get_default_params(self):
-        """
-        Get default parameters for the enhancement pipeline.
-        
-        Returns:
-            Dictionary of default parameters
-        """
+        """Get default parameters for enhancement"""
         return {
-            # General parameters
-            'window_size': 15,
-            'use_entropy': True,
-            
-            # Noise reduction parameters
+            'window_size': self.window_size,
+            'clip_limit': self.clip_limit,
+            'use_entropy': not self.disable_entropy,
+            'disable_entropy': self.disable_entropy,
+            'simplified_processing': self.use_simplified_processing,
+            'max_processing_dimension': self.max_processing_dimension,
+            'sharpen': True,
             'denoise': True,
-            'min_kernel_size': 3,
-            'max_kernel_size': 7,
-            'bilateral_strength': 1.0,
-            'bilateral_diameter': 9,
-            'bilateral_sigma_color': 75,
-            'bilateral_sigma_space': 75,
-            'denoise_blend_factor': 0.7,
+            'enhance_details': True,
             
             # Adaptive enhancement parameters
             'gamma_min': 0.7,
@@ -420,7 +524,6 @@ class AdaptiveContrastEnhancement:
             'entropy_factor': 0.3,
             
             # Detail enhancement parameters
-            'enhance_details': True,
             'unsharp_kernel_size': 5,
             'unsharp_sigma': 1.0,
             'unsharp_amount': 1.0,

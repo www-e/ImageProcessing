@@ -80,8 +80,8 @@ def get_image_hash(image_path):
 def detect_image_format(image_path):
     """Detect the image format and return appropriate settings."""
     try:
-        # Try to detect format using imghdr
-        img_format = imghdr.what(image_path)
+        # Use our custom format detection function
+        img_format = what_format(image_path)
         
         # Check file size
         file_size = os.path.getsize(image_path) / (1024 * 1024)  # Size in MB

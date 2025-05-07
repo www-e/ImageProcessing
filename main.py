@@ -11,6 +11,7 @@ import sys
 import argparse
 import logging
 import webbrowser
+import shutil
 from threading import Timer
 
 # Configure logging
@@ -31,6 +32,55 @@ APP_DIRS = {
     'history': os.path.join('static', 'history'),
     'compressed': os.path.join('static', 'compressed')
 }
+
+def cleanup_pycache():
+    """
+    Clean up all __pycache__ directories and .pyc files in the project for a clean run.
+    """
+    try:
+        # Track statistics
+        pycache_count = 0
+        pyc_count = 0
+        
+        # Walk through all directories in the project
+        for root, dirs, files in os.walk('.'):
+            # Remove __pycache__ directories
+            if '__pycache__' in dirs:
+                pycache_dir = os.path.join(root, '__pycache__')
+                shutil.rmtree(pycache_dir)
+                logger.info(f"Removed __pycache__ directory: {pycache_dir}")
+                pycache_count += 1
+            
+            # Remove .pyc files
+            for file in files:
+                if file.endswith('.pyc'):
+                    pyc_file = os.path.join(root, file)
+                    os.remove(pyc_file)
+                    logger.info(f"Removed .pyc file: {pyc_file}")
+                    pyc_count += 1
+        
+        # Check specific directories that might be missed
+        specific_dirs = [
+            'routes', 'services', 'models', 'utils', 'config', 'filters',
+            os.path.join('routes', '__pycache__'),
+            os.path.join('services', '__pycache__'),
+            os.path.join('models', '__pycache__'),
+            os.path.join('utils', '__pycache__'),
+            os.path.join('config', '__pycache__'),
+            os.path.join('filters', '__pycache__')
+        ]
+        
+        for dir_path in specific_dirs:
+            if dir_path.endswith('__pycache__') and os.path.exists(dir_path):
+                shutil.rmtree(dir_path)
+                logger.info(f"Removed specific __pycache__ directory: {dir_path}")
+                pycache_count += 1
+        
+        logger.info(f"Cleaned up {pycache_count} __pycache__ directories and {pyc_count} .pyc files")
+        return True
+    except Exception as e:
+        logger.error(f"Error cleaning up __pycache__ directories: {str(e)}")
+        return False
 
 def setup_directories():
     """
@@ -110,6 +160,9 @@ def main():
     # Parse command line arguments
     args = parse_arguments()
     
+    # Clean up __pycache__ directories for a clean run
+    cleanup_pycache()
+    
     # Setup directories
     if not setup_directories():
         logger.error("Failed to set up directories. Exiting.")
@@ -117,6 +170,16 @@ def main():
     
     # Start the server
     try:
+        # Make sure filters modules are properly imported
+        try:
+            # Verify imports work correctly
+            from filters import enhancement, morphological
+            logger.info("Filter modules successfully imported")
+        except ImportError as e:
+            logger.error(f"Error importing filter modules: {str(e)}")
+            logger.info("Please make sure filters/enhancement.py and filters/morphological.py exist")
+            sys.exit(1)
+            
         start_server(
             host=args.host,
             port=args.port,

@@ -11,14 +11,14 @@
     <link rel="icon" href="{{ url_for('static', filename='img/favicon.png') }}" type="image/png">
 </head>
 <body>
-    <div class="container">
+    <div class="container"> <!-- Main container starts here -->
         <h1>Adaptive Contrast Enhancement</h1>
-        
+
         <div class="main-tabs">
             <div class="main-tab active" data-tab="enhance">Enhance</div>
             <div class="main-tab" data-tab="history">History</div>
         </div>
-        
+
         <div id="enhance-tab" class="main-tab-content active">
             <div class="compact-header">
                 <div class="upload-section">
@@ -31,7 +31,7 @@
                         </div>
                     </form>
                 </div>
-                
+
                 <div class="preset-section">
                     <h3>Quick Presets</h3>
                     <div class="preset-buttons">
@@ -43,7 +43,7 @@
                         <button class="preset-btn" data-preset="low_contrast" title="Improves contrast while maintaining natural look">Low Contrast</button>
                     </div>
                 </div>
-                
+
                 <div class="morphological-section">
                     <h3>
                         <div class="section-title">Morphological Filters</div>
@@ -59,7 +59,7 @@
                                 <button class="morphological-btn" data-filter="closing" title="Fills small dark holes while preserving shape">Closing</button>
                             </div>
                         </div>
-                        
+
                         <div class="filter-group">
                             <div class="filter-group-title">Top-Hat Filters</div>
                             <div class="morphological-buttons">
@@ -67,7 +67,7 @@
                                 <button class="morphological-btn" data-filter="blackhat" title="Enhances small dark details in the image">Black Top-Hat</button>
                             </div>
                         </div>
-                        
+
                         <div class="filter-group">
                             <div class="filter-group-title">Advanced Filters</div>
                             <div class="morphological-buttons">
@@ -78,7 +78,7 @@
                                 <button class="morphological-btn" data-filter="skeleton" title="Creates a skeleton representation of objects">Skeletonization</button>
                             </div>
                         </div>
-                        
+
                         <div class="morphological-params">
                             <!-- Common parameters -->
                             <div class="morphological-param-group">
@@ -91,14 +91,14 @@
                                 <input type="range" id="iterations" name="iterations" min="1" max="5" step="1" value="1">
                                 <span class="param-value" id="iterations-value">1</span>
                             </div>
-                            
+
                             <!-- Conditional parameters -->
                             <div class="morphological-param-group conditional-param" id="strength-group">
                                 <label for="strength">Strength:</label>
                                 <input type="range" id="strength" name="strength" min="0.1" max="2.0" step="0.1" value="1.0">
                                 <span class="param-value" id="strength-value">1.0</span>
                             </div>
-                            
+
                             <div class="morphological-param-group conditional-param" id="pattern-group">
                                 <label for="pattern">Pattern Type:</label>
                                 <select id="pattern" name="pattern">
@@ -108,7 +108,7 @@
                                     <option value="diagonal">Diagonal</option>
                                 </select>
                             </div>
-                            
+
                             <div class="advanced-toggle">Show Advanced Options</div>
                             <div class="advanced-options">
                                 <div class="morphological-param-group conditional-param" id="threshold-group">
@@ -116,269 +116,268 @@
                                     <input type="range" id="threshold" name="threshold" min="0" max="255" step="1" value="127">
                                     <span class="param-value" id="threshold-value">127</span>
                                 </div>
-                                
+
                                 <div class="morphological-param-group conditional-param" id="preserve-original-group">
                                     <label for="preserve-original">Preserve Original:</label>
                                     <input type="checkbox" id="preserve-original" name="preserve_original" checked>
                                 </div>
-                                
+
                                 <div class="morphological-param-group conditional-param" id="max-iterations-group">
                                     <label for="max-iterations">Max Iterations:</label>
                                     <input type="range" id="max-iterations" name="max_iterations" min="1" max="100" step="1" value="10">
                                     <span class="param-value" id="max-iterations-value">10</span>
                                 </div>
                             </div>
-                            
+
                             <button id="apply-morphological" class="morphological-apply-btn">Apply Filter</button>
                         </div>
                     </div>
-                </div>
-            </div>
-        
-        <div class="image-container">
-            <div class="image-box">
-                <h3>Original Image</h3>
-                <div class="image-wrapper">
-                    <img id="original-image" src="{{ url_for('static', filename='img/placeholder.png') }}" alt="Original Image">
-                </div>
-            </div>
-            <div class="image-box">
-                <h3>Enhanced Image</h3>
-                <div class="image-wrapper">
-                    <img id="enhanced-image" src="{{ url_for('static', filename='img/placeholder.png') }}" alt="Enhanced Image">
-                </div>
-                <div class="download-btn-container">
-                    <a id="download-btn" href="#" download="enhanced_image.jpg" class="download-btn">Download</a>
-                </div>
-            </div>
-        </div>
-        
-        <div class="enhancement-section">
-            <h3>
-                <div class="section-title">Enhancement Parameters</div>
-                <div class="enhancement-toggle">▼</div>
-            </h3>
-            <div class="enhancement-content">
-                <div class="filter-group">
-                    <div class="filter-group-title">Basic Adjustments</div>
-                    <div class="enhancement-buttons">
-                        <button class="enhancement-btn" data-filter="brightness_contrast" title="Adjust image brightness and contrast">Brightness/Contrast</button>
-                        <button class="enhancement-btn" data-filter="exposure" title="Adjust image exposure">Exposure</button>
-                        <button class="enhancement-btn" data-filter="vibrance" title="Enhance color vibrancy">Vibrance</button>
-                        <button class="enhancement-btn" data-filter="clarity" title="Enhance midtone contrast">Clarity</button>
-                        <button class="enhancement-btn" data-filter="shadows_highlights" title="Recover details in shadows and highlights">Shadows/Highlights</button>
-                    </div>
-                </div>
-                
-                <div class="filter-group">
-                    <div class="filter-group-title">Adaptive Enhancement</div>
-                    <div class="enhancement-buttons">
-                        <button class="enhancement-btn" data-filter="adaptive" title="Apply adaptive contrast enhancement">Adaptive Contrast</button>
-                        <button class="enhancement-btn" data-filter="local_tone" title="Apply local tone mapping">Local Tone Mapping</button>
-                        <button class="enhancement-btn" data-filter="hdr" title="Create HDR-like effect">HDR Effect</button>
-                    </div>
-                </div>
-                
-                <div class="filter-group">
-                    <div class="filter-group-title">Detail Enhancement</div>
-                    <div class="enhancement-buttons">
-                        <button class="enhancement-btn" data-filter="sharpen" title="Sharpen image details">Sharpen</button>
-                        <button class="enhancement-btn" data-filter="denoise" title="Reduce image noise">Denoise</button>
-                        <button class="enhancement-btn" data-filter="edge_enhance" title="Enhance edges">Edge Enhancement</button>
-                    </div>
-                </div>
-                
-                <div class="enhancement-params">
-                    <!-- Common parameters -->
-                    <div class="enhancement-param-group">
-                        <label for="window-size">Window Size:</label>
-                        <input type="range" id="window-size" name="window_size" min="3" max="31" step="2" value="15">
-                        <span class="param-value" id="window-size-value">15</span>
-                    </div>
-                    <div class="enhancement-param-group">
-                        <label for="use-entropy">Use Entropy:</label>
-                        <input type="checkbox" id="use-entropy" name="use_entropy" checked>
-                    </div>
-                    
-                    <!-- Conditional parameters for brightness/contrast -->
-                    <div class="enhancement-param-group conditional-param" id="brightness-group">
-                        <label for="brightness">Brightness:</label>
-                        <input type="range" id="brightness" name="brightness" min="-100" max="100" step="1" value="0">
-                        <span class="param-value" id="brightness-value">0</span>
-                    </div>
-                    <div class="enhancement-param-group conditional-param" id="contrast-group">
-                        <label for="contrast">Contrast:</label>
-                        <input type="range" id="contrast" name="contrast" min="-100" max="100" step="1" value="0">
-                        <span class="param-value" id="contrast-value">0</span>
-                    </div>
-                    
-                    <!-- Conditional parameters for exposure -->
-                    <div class="enhancement-param-group conditional-param" id="exposure-group">
-                        <label for="exposure">Exposure:</label>
-                        <input type="range" id="exposure" name="exposure" min="-100" max="100" step="1" value="0">
-                        <span class="param-value" id="exposure-value">0</span>
-                    </div>
-                    
-                    <!-- Conditional parameters for vibrance -->
-                    <div class="enhancement-param-group conditional-param" id="vibrance-group">
-                        <label for="vibrance">Vibrance:</label>
-                        <input type="range" id="vibrance" name="vibrance" min="0" max="100" step="1" value="50">
-                        <span class="param-value" id="vibrance-value">50</span>
-                    </div>
-                    
-                    <!-- Conditional parameters for clarity -->
-                    <div class="enhancement-param-group conditional-param" id="clarity-group">
-                        <label for="clarity">Clarity:</label>
-                        <input type="range" id="clarity" name="clarity" min="0" max="100" step="1" value="50">
-                        <span class="param-value" id="clarity-value">50</span>
-                    </div>
-                    
-                    <!-- Conditional parameters for shadows/highlights -->
-                    <div class="enhancement-param-group conditional-param" id="shadows-group">
-                        <label for="shadows">Shadows:</label>
-                        <input type="range" id="shadows" name="shadows" min="0" max="100" step="1" value="50">
-                        <span class="param-value" id="shadows-value">50</span>
-                    </div>
-                    <div class="enhancement-param-group conditional-param" id="highlights-group">
-                        <label for="highlights">Highlights:</label>
-                        <input type="range" id="highlights" name="highlights" min="0" max="100" step="1" value="50">
-                        <span class="param-value" id="highlights-value">50</span>
-                    </div>
-                    
-                    <!-- Conditional parameters for adaptive contrast -->
-                    <div class="enhancement-param-group conditional-param" id="gamma-min-group">
-                        <label for="gamma-min">Gamma Min:</label>
-                        <input type="range" id="gamma-min" name="gamma_min" min="0.1" max="1" step="0.1" value="0.7">
-                        <span class="param-value" id="gamma-min-value">0.7</span>
-                    </div>
-                    <div class="enhancement-param-group conditional-param" id="gamma-max-group">
-                        <label for="gamma-max">Gamma Max:</label>
-                        <input type="range" id="gamma-max" name="gamma_max" min="1" max="3" step="0.1" value="1.5">
-                        <span class="param-value" id="gamma-max-value">1.5</span>
-                    </div>
-                    <div class="enhancement-param-group conditional-param" id="contrast-strength-group">
-                        <label for="contrast-strength">Contrast Strength:</label>
-                        <input type="range" id="contrast-strength" name="contrast_strength" min="0.5" max="4" step="0.1" value="2.0">
-                        <span class="param-value" id="contrast-strength-value">2.0</span>
-                    </div>
-                    <div class="enhancement-param-group conditional-param" id="entropy-factor-group">
-                        <label for="entropy-factor">Entropy Factor:</label>
-                        <input type="range" id="entropy-factor" name="entropy_factor" min="0" max="1" step="0.1" value="0.3">
-                        <span class="param-value" id="entropy-factor-value">0.3</span>
-                    </div>
-                    
-                    <!-- Conditional parameters for local tone mapping -->
-                    <div class="enhancement-param-group conditional-param" id="local-tone-alpha-group">
-                        <label for="local-tone-alpha">Detail Enhancement:</label>
-                        <input type="range" id="local-tone-alpha" name="local_tone_alpha" min="0.5" max="2.5" step="0.1" value="1.5">
-                        <span class="param-value" id="local-tone-alpha-value">1.5</span>
-                    </div>
-                    <div class="enhancement-param-group conditional-param" id="local-tone-beta-group">
-                        <label for="local-tone-beta">Brightness Adjustment:</label>
-                        <input type="range" id="local-tone-beta" name="local_tone_beta" min="0" max="1" step="0.1" value="0.5">
-                        <span class="param-value" id="local-tone-beta-value">0.5</span>
-                    </div>
-                    
-                    <!-- Conditional parameters for HDR effect -->
-                    <div class="enhancement-param-group conditional-param" id="hdr-strength-group">
-                        <label for="hdr-strength">HDR Strength:</label>
-                        <input type="range" id="hdr-strength" name="hdr_strength" min="0" max="100" step="1" value="50">
-                        <span class="param-value" id="hdr-strength-value">50</span>
-                    </div>
-                    <div class="enhancement-param-group conditional-param" id="hdr-radius-group">
-                        <label for="hdr-radius">Local Contrast Radius:</label>
-                        <input type="range" id="hdr-radius" name="hdr_radius" min="1" max="100" step="1" value="20">
-                        <span class="param-value" id="hdr-radius-value">20</span>
-                    </div>
-                    
-                    <!-- Conditional parameters for sharpen -->
-                    <div class="enhancement-param-group conditional-param" id="unsharp-kernel-group">
-                        <label for="unsharp-kernel">Unsharp Kernel Size:</label>
-                        <input type="range" id="unsharp-kernel" name="unsharp_kernel_size" min="3" max="9" step="2" value="5">
-                        <span class="param-value" id="unsharp-kernel-value">5</span>
-                    </div>
-                    <div class="enhancement-param-group conditional-param" id="unsharp-sigma-group">
-                        <label for="unsharp-sigma">Unsharp Sigma:</label>
-                        <input type="range" id="unsharp-sigma" name="unsharp_sigma" min="0.1" max="3" step="0.1" value="1.0">
-                        <span class="param-value" id="unsharp-sigma-value">1.0</span>
-                    </div>
-                    <div class="enhancement-param-group conditional-param" id="unsharp-amount-group">
-                        <label for="unsharp-amount">Unsharp Amount:</label>
-                        <input type="range" id="unsharp-amount" name="unsharp_amount" min="0.1" max="3" step="0.1" value="1.0">
-                        <span class="param-value" id="unsharp-amount-value">1.0</span>
-                    </div>
-                    
-                    <!-- Conditional parameters for denoise -->
-                    <div class="enhancement-param-group conditional-param" id="bilateral-strength-group">
-                        <label for="bilateral-strength">Bilateral Strength:</label>
-                        <input type="range" id="bilateral-strength" name="bilateral_strength" min="0.1" max="2" step="0.1" value="1.0">
-                        <span class="param-value" id="bilateral-strength-value">1.0</span>
-                    </div>
-                    <div class="enhancement-param-group conditional-param" id="bilateral-diameter-group">
-                        <label for="bilateral-diameter">Bilateral Diameter:</label>
-                        <input type="range" id="bilateral-diameter" name="bilateral_diameter" min="5" max="15" step="2" value="9">
-                        <span class="param-value" id="bilateral-diameter-value">9</span>
-                    </div>
-                    <div class="enhancement-param-group conditional-param" id="denoise-blend-group">
-                        <label for="denoise-blend">Denoise Blend Factor:</label>
-                        <input type="range" id="denoise-blend" name="denoise_blend_factor" min="0" max="1" step="0.1" value="0.7">
-                        <span class="param-value" id="denoise-blend-value">0.7</span>
-                    </div>
-                    
-                    <!-- Conditional parameters for edge enhancement -->
-                    <div class="enhancement-param-group conditional-param" id="edge-kernel-group">
-                        <label for="edge-kernel">Edge Kernel Size:</label>
-                        <input type="range" id="edge-kernel" name="edge_kernel_size" min="3" max="7" step="2" value="3">
-                        <span class="param-value" id="edge-kernel-value">3</span>
-                    </div>
-                    <div class="enhancement-param-group conditional-param" id="edge-scale-group">
-                        <label for="edge-scale">Edge Scale:</label>
-                        <input type="range" id="edge-scale" name="edge_scale" min="0.5" max="2" step="0.1" value="1.0">
-                        <span class="param-value" id="edge-scale-value">1.0</span>
-                    </div>
-                    
-                    <div class="advanced-toggle">Show Advanced Options</div>
-                    <div class="advanced-options">
-                        <div class="enhancement-param-group conditional-param" id="apply-clahe-group">
-                            <label for="apply-clahe">Apply CLAHE:</label>
-                            <input type="checkbox" id="apply-clahe" name="apply_clahe" checked>
-                        </div>
-                        <div class="enhancement-param-group conditional-param" id="clahe-clip-group">
-                            <label for="clahe-clip">CLAHE Clip Limit:</label>
-                            <input type="range" id="clahe-clip" name="clahe_clip_limit" min="0.5" max="5" step="0.1" value="2.0">
-                            <span class="param-value" id="clahe-clip-value">2.0</span>
-                        </div>
-                        <div class="enhancement-param-group conditional-param" id="clahe-blend-group">
-                            <label for="clahe-blend">CLAHE Blend:</label>
-                            <input type="range" id="clahe-blend" name="clahe_blend" min="0" max="1" step="0.1" value="0.5">
-                            <span class="param-value" id="clahe-blend-value">0.5</span>
-                        </div>
-                        <div class="enhancement-param-group conditional-param" id="apply-high-boost-group">
-                            <label for="apply-high-boost">Apply High Boost:</label>
-                            <input type="checkbox" id="apply-high-boost" name="apply_high_boost" checked>
-                        </div>
-                        <div class="enhancement-param-group conditional-param" id="high-boost-factor-group">
-                            <label for="high-boost-factor">High Boost Factor:</label>
-                            <input type="range" id="high-boost-factor" name="high_boost_factor" min="0.5" max="3" step="0.1" value="1.5">
-                            <span class="param-value" id="high-boost-factor-value">1.5</span>
-                        </div>
-                        <div class="enhancement-param-group conditional-param" id="high-boost-blend-group">
-                            <label for="high-boost-blend">High Boost Blend:</label>
-                            <input type="range" id="high-boost-blend" name="high_boost_blend" min="0" max="1" step="0.1" value="0.3">
-                            <span class="param-value" id="high-boost-blend-value">0.3</span>
+                </div> <!-- Closes morphological-section -->
+            </div> <!-- Closes compact-header -->
+
+            <!-- Enhancement Parameters Section MOVED HERE -->
+            <div class="enhancement-section">
+                <h3>
+                    <div class="section-title">Enhancement Parameters</div>
+                    <div class="enhancement-toggle">▼</div>
+                </h3>
+                <div class="enhancement-content">
+                    <div class="filter-group">
+                        <div class="filter-group-title">Basic Adjustments</div>
+                        <div class="enhancement-buttons">
+                            <button class="enhancement-btn" data-filter="brightness_contrast" title="Adjust image brightness and contrast">Brightness/Contrast</button>
+                            <button class="enhancement-btn" data-filter="exposure" title="Adjust image exposure">Exposure</button>
+                            <button class="enhancement-btn" data-filter="vibrance" title="Enhance color vibrancy">Vibrance</button>
+                            <button class="enhancement-btn" data-filter="clarity" title="Enhance midtone contrast">Clarity</button>
+                            <button class="enhancement-btn" data-filter="shadows_highlights" title="Recover details in shadows and highlights">Shadows/Highlights</button>
                         </div>
                     </div>
-                    
-                    <button id="apply-btn" class="enhancement-apply-btn" disabled>Apply Enhancement</button>
-                    <button id="reset-btn" class="enhancement-apply-btn">Reset Parameters</button>
+
+                    <div class="filter-group">
+                        <div class="filter-group-title">Adaptive Enhancement</div>
+                        <div class="enhancement-buttons">
+                            <button class="enhancement-btn" data-filter="adaptive" title="Apply adaptive contrast enhancement">Adaptive Contrast</button>
+                            <button class="enhancement-btn" data-filter="local_tone" title="Apply local tone mapping">Local Tone Mapping</button>
+                            <button class="enhancement-btn" data-filter="hdr" title="Create HDR-like effect">HDR Effect</button>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <div class="filter-group-title">Detail Enhancement</div>
+                        <div class="enhancement-buttons">
+                            <button class="enhancement-btn" data-filter="sharpen" title="Sharpen image details">Sharpen</button>
+                            <button class="enhancement-btn" data-filter="denoise" title="Reduce image noise">Denoise</button>
+                            <button class="enhancement-btn" data-filter="edge_enhance" title="Enhance edges">Edge Enhancement</button>
+                        </div>
+                    </div>
+
+                    <div class="enhancement-params">
+                        <!-- Common parameters -->
+                        <div class="enhancement-param-group">
+                            <label for="window-size">Window Size:</label>
+                            <input type="range" id="window-size" name="window_size" min="3" max="31" step="2" value="15">
+                            <span class="param-value" id="window-size-value">15</span>
+                        </div>
+                        <div class="enhancement-param-group">
+                            <label for="use-entropy">Use Entropy:</label>
+                            <input type="checkbox" id="use-entropy" name="use_entropy" checked>
+                        </div>
+
+                        <!-- Conditional parameters for brightness/contrast -->
+                        <div class="enhancement-param-group conditional-param" id="brightness-group">
+                            <label for="brightness">Brightness:</label>
+                            <input type="range" id="brightness" name="brightness" min="-100" max="100" step="1" value="0">
+                            <span class="param-value" id="brightness-value">0</span>
+                        </div>
+                        <div class="enhancement-param-group conditional-param" id="contrast-group">
+                            <label for="contrast">Contrast:</label>
+                            <input type="range" id="contrast" name="contrast" min="-100" max="100" step="1" value="0">
+                            <span class="param-value" id="contrast-value">0</span>
+                        </div>
+
+                        <!-- Conditional parameters for exposure -->
+                        <div class="enhancement-param-group conditional-param" id="exposure-group">
+                            <label for="exposure">Exposure:</label>
+                            <input type="range" id="exposure" name="exposure" min="-100" max="100" step="1" value="0">
+                            <span class="param-value" id="exposure-value">0</span>
+                        </div>
+
+                        <!-- Conditional parameters for vibrance -->
+                        <div class="enhancement-param-group conditional-param" id="vibrance-group">
+                            <label for="vibrance">Vibrance:</label>
+                            <input type="range" id="vibrance" name="vibrance" min="0" max="100" step="1" value="50">
+                            <span class="param-value" id="vibrance-value">50</span>
+                        </div>
+
+                        <!-- Conditional parameters for clarity -->
+                        <div class="enhancement-param-group conditional-param" id="clarity-group">
+                            <label for="clarity">Clarity:</label>
+                            <input type="range" id="clarity" name="clarity" min="0" max="100" step="1" value="50">
+                            <span class="param-value" id="clarity-value">50</span>
+                        </div>
+
+                        <!-- Conditional parameters for shadows/highlights -->
+                        <div class="enhancement-param-group conditional-param" id="shadows-group">
+                            <label for="shadows">Shadows:</label>
+                            <input type="range" id="shadows" name="shadows" min="0" max="100" step="1" value="50">
+                            <span class="param-value" id="shadows-value">50</span>
+                        </div>
+                        <div class="enhancement-param-group conditional-param" id="highlights-group">
+                            <label for="highlights">Highlights:</label>
+                            <input type="range" id="highlights" name="highlights" min="0" max="100" step="1" value="50">
+                            <span class="param-value" id="highlights-value">50</span>
+                        </div>
+
+                        <!-- Conditional parameters for adaptive contrast -->
+                        <div class="enhancement-param-group conditional-param" id="gamma-min-group">
+                            <label for="gamma-min">Gamma Min:</label>
+                            <input type="range" id="gamma-min" name="gamma_min" min="0.1" max="1" step="0.1" value="0.7">
+                            <span class="param-value" id="gamma-min-value">0.7</span>
+                        </div>
+                        <div class="enhancement-param-group conditional-param" id="gamma-max-group">
+                            <label for="gamma-max">Gamma Max:</label>
+                            <input type="range" id="gamma-max" name="gamma_max" min="1" max="3" step="0.1" value="1.5">
+                            <span class="param-value" id="gamma-max-value">1.5</span>
+                        </div>
+                        <div class="enhancement-param-group conditional-param" id="contrast-strength-group">
+                            <label for="contrast-strength">Contrast Strength:</label>
+                            <input type="range" id="contrast-strength" name="contrast_strength" min="0.5" max="4" step="0.1" value="2.0">
+                            <span class="param-value" id="contrast-strength-value">2.0</span>
+                        </div>
+                        <div class="enhancement-param-group conditional-param" id="entropy-factor-group">
+                            <label for="entropy-factor">Entropy Factor:</label>
+                            <input type="range" id="entropy-factor" name="entropy_factor" min="0" max="1" step="0.1" value="0.3">
+                            <span class="param-value" id="entropy-factor-value">0.3</span>
+                        </div>
+
+                        <!-- Conditional parameters for local tone mapping -->
+                        <div class="enhancement-param-group conditional-param" id="local-tone-alpha-group">
+                            <label for="local-tone-alpha">Detail Enhancement:</label>
+                            <input type="range" id="local-tone-alpha" name="local_tone_alpha" min="0.5" max="2.5" step="0.1" value="1.5">
+                            <span class="param-value" id="local-tone-alpha-value">1.5</span>
+                        </div>
+                        <div class="enhancement-param-group conditional-param" id="local-tone-beta-group">
+                            <label for="local-tone-beta">Brightness Adjustment:</label>
+                            <input type="range" id="local-tone-beta" name="local_tone_beta" min="0" max="1" step="0.1" value="0.5">
+                            <span class="param-value" id="local-tone-beta-value">0.5</span>
+                        </div>
+
+                        <!-- Conditional parameters for HDR effect -->
+                        <div class="enhancement-param-group conditional-param" id="hdr-strength-group">
+                            <label for="hdr-strength">HDR Strength:</label>
+                            <input type="range" id="hdr-strength" name="hdr_strength" min="0" max="100" step="1" value="50">
+                            <span class="param-value" id="hdr-strength-value">50</span>
+                        </div>
+                        <div class="enhancement-param-group conditional-param" id="hdr-radius-group">
+                            <label for="hdr-radius">Local Contrast Radius:</label>
+                            <input type="range" id="hdr-radius" name="hdr_radius" min="1" max="100" step="1" value="20">
+                            <span class="param-value" id="hdr-radius-value">20</span>
+                        </div>
+
+                        <!-- Conditional parameters for sharpen -->
+                        <div class="enhancement-param-group conditional-param" id="unsharp-kernel-group">
+                            <label for="unsharp-kernel">Unsharp Kernel Size:</label>
+                            <input type="range" id="unsharp-kernel" name="unsharp_kernel_size" min="3" max="9" step="2" value="5">
+                            <span class="param-value" id="unsharp-kernel-value">5</span>
+                        </div>
+                        <div class="enhancement-param-group conditional-param" id="unsharp-sigma-group">
+                            <label for="unsharp-sigma">Unsharp Sigma:</label>
+                            <input type="range" id="unsharp-sigma" name="unsharp_sigma" min="0.1" max="3" step="0.1" value="1.0">
+                            <span class="param-value" id="unsharp-sigma-value">1.0</span>
+                        </div>
+                        <div class="enhancement-param-group conditional-param" id="unsharp-amount-group">
+                            <label for="unsharp-amount">Unsharp Amount:</label>
+                            <input type="range" id="unsharp-amount" name="unsharp_amount" min="0.1" max="3" step="0.1" value="1.0">
+                            <span class="param-value" id="unsharp-amount-value">1.0</span>
+                        </div>
+
+                        <!-- Conditional parameters for denoise -->
+                        <div class="enhancement-param-group conditional-param" id="bilateral-strength-group">
+                            <label for="bilateral-strength">Bilateral Strength:</label>
+                            <input type="range" id="bilateral-strength" name="bilateral_strength" min="0.1" max="2" step="0.1" value="1.0">
+                            <span class="param-value" id="bilateral-strength-value">1.0</span>
+                        </div>
+                        <div class="enhancement-param-group conditional-param" id="bilateral-diameter-group">
+                            <label for="bilateral-diameter">Bilateral Diameter:</label>
+                            <input type="range" id="bilateral-diameter" name="bilateral_diameter" min="5" max="15" step="2" value="9">
+                            <span class="param-value" id="bilateral-diameter-value">9</span>
+                        </div>
+                        <div class="enhancement-param-group conditional-param" id="denoise-blend-group">
+                            <label for="denoise-blend">Denoise Blend Factor:</label>
+                            <input type="range" id="denoise-blend" name="denoise_blend_factor" min="0" max="1" step="0.1" value="0.7">
+                            <span class="param-value" id="denoise-blend-value">0.7</span>
+                        </div>
+
+                        <!-- Conditional parameters for edge enhancement -->
+                        <div class="enhancement-param-group conditional-param" id="edge-kernel-group">
+                            <label for="edge-kernel">Edge Kernel Size:</label>
+                            <input type="range" id="edge-kernel" name="edge_kernel_size" min="3" max="7" step="2" value="3">
+                            <span class="param-value" id="edge-kernel-value">3</span>
+                        </div>
+                        <div class="enhancement-param-group conditional-param" id="edge-scale-group">
+                            <label for="edge-scale">Edge Scale:</label>
+                            <input type="range" id="edge-scale" name="edge_scale" min="0.5" max="2" step="0.1" value="1.0">
+                            <span class="param-value" id="edge-scale-value">1.0</span>
+                        </div>
+
+                        <div class="advanced-toggle">Show Advanced Options</div>
+                        <div class="advanced-options">
+                            <div class="enhancement-param-group conditional-param" id="apply-clahe-group">
+                                <label for="apply-clahe">Apply CLAHE:</label>
+                                <input type="checkbox" id="apply-clahe" name="apply_clahe" checked>
+                            </div>
+                            <div class="enhancement-param-group conditional-param" id="clahe-clip-group">
+                                <label for="clahe-clip">CLAHE Clip Limit:</label>
+                                <input type="range" id="clahe-clip" name="clahe_clip_limit" min="0.5" max="5" step="0.1" value="2.0">
+                                <span class="param-value" id="clahe-clip-value">2.0</span>
+                            </div>
+                            <div class="enhancement-param-group conditional-param" id="clahe-blend-group">
+                                <label for="clahe-blend">CLAHE Blend:</label>
+                                <input type="range" id="clahe-blend" name="clahe_blend" min="0" max="1" step="0.1" value="0.5">
+                                <span class="param-value" id="clahe-blend-value">0.5</span>
+                            </div>
+                            <div class="enhancement-param-group conditional-param" id="apply-high-boost-group">
+                                <label for="apply-high-boost">Apply High Boost:</label>
+                                <input type="checkbox" id="apply-high-boost" name="apply_high_boost" checked>
+                            </div>
+                            <div class="enhancement-param-group conditional-param" id="high-boost-factor-group">
+                                <label for="high-boost-factor">High Boost Factor:</label>
+                                <input type="range" id="high-boost-factor" name="high_boost_factor" min="0.5" max="3" step="0.1" value="1.5">
+                                <span class="param-value" id="high-boost-factor-value">1.5</span>
+                            </div>
+                            <div class="enhancement-param-group conditional-param" id="high-boost-blend-group">
+                                <label for="high-boost-blend">High Boost Blend:</label>
+                                <input type="range" id="high-boost-blend" name="high_boost_blend" min="0" max="1" step="0.1" value="0.3">
+                                <span class="param-value" id="high-boost-blend-value">0.3</span>
+                            </div>
+                        </div>
+
+                        <button id="apply-btn" class="enhancement-apply-btn" disabled>Apply Enhancement</button>
+                        <button id="reset-btn" class="enhancement-apply-btn">Reset Parameters</button>
+                    </div> <!-- Closes enhancement-params -->
+                </div> <!-- Closes enhancement-content -->
+            </div> <!-- Closes enhancement-section -->
+
+            <div class="image-container">
+                <div class="image-box">
+                    <h3>Original Image</h3>
+                    <div class="image-wrapper">
+                        <img id="original-image" src="{{ url_for('static', filename='img/placeholder.png') }}" alt="Original Image">
+                    </div>
                 </div>
-            </div>
-        </div>
-        </div>
-        
-        <!-- Preset section moved to the top -->
-        </div>
-        
+                <div class="image-box">
+                    <h3>Enhanced Image</h3>
+                    <div class="image-wrapper">
+                        <img id="enhanced-image" src="{{ url_for('static', filename='img/placeholder.png') }}" alt="Enhanced Image">
+                    </div>
+                    <div class="download-btn-container">
+                        <a id="download-btn" href="#" download="enhanced_image.jpg" class="download-btn">Download</a>
+                    </div>
+                </div>
+            </div> <!-- Closes image-container -->
+
+        </div> <!-- Closes enhance-tab -->
+
         <!-- History Tab Content -->
         <div id="history-tab" class="main-tab-content">
             <div class="history-section">
@@ -392,7 +391,7 @@
                     <div class="history-empty">No history entries yet</div>
                 </div>
             </div>
-            
+
             <div class="history-detail" id="history-detail">
                 <div class="history-detail-empty">Select a history entry to view details</div>
                 <div class="history-detail-content" style="display: none;">
@@ -426,9 +425,10 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+        </div> <!-- Closes history-tab -->
+
+    </div> <!-- Main container CLOSES HERE -->
+
+    <script type="module" src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>

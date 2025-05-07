@@ -129,6 +129,56 @@ def process_image_task(task_id, image_path, filename, params, use_compressed, da
         
         # Apply additional filters if specified
         try:
+            # Check if multiple filters are specified
+            filter_types = params.get('filter_types', [])
+            
+            # If filter_types is provided, apply each filter in sequence
+            if filter_types:
+                print(f"Applying multiple enhancement filters: {filter_types}")
+                
+                # Apply each enhancement filter in sequence
+                for filter_type in filter_types:
+                    print(f"Applying filter: {filter_type}")
+                    
+                    if filter_type == 'brightness_contrast':
+                        bc_params = {
+                            'brightness': params.get('brightness', 0.0),
+                            'contrast': params.get('contrast', 1.0)
+                        }
+                        enhanced = apply_brightness_contrast(enhanced, bc_params)
+                        
+                    elif filter_type == 'exposure':
+                        exposure_params = {
+                            'exposure': params.get('exposure', 0.0),
+                            'highlights': params.get('highlights', 0.0),
+                            'shadows': params.get('shadows', 0.0)
+                        }
+                        enhanced = apply_exposure(enhanced, exposure_params)
+                        
+                    elif filter_type == 'vibrance':
+                        vibrance_params = {
+                            'vibrance': params.get('vibrance', 0.5),
+                            'saturation': params.get('saturation', 0.0)
+                        }
+                        enhanced = apply_vibrance(enhanced, vibrance_params)
+                        
+                    elif filter_type == 'clarity':
+                        clarity_params = {
+                            'clarity': params.get('clarity', 0.5),
+                            'edge_kernel': params.get('edge_kernel', 3),
+                            'edge_scale': params.get('edge_scale', 1.0)
+                        }
+                        enhanced = apply_clarity(enhanced, clarity_params)
+                        
+                    elif filter_type == 'shadows_highlights':
+                        sh_params = {
+                            'shadows_recovery': params.get('shadows_recovery', 0.5),
+                            'highlights_recovery': params.get('highlights_recovery', 0.5),
+                            'mid_tone_contrast': params.get('mid_tone_contrast', 0.0)
+                        }
+                        enhanced = apply_shadows_highlights(enhanced, sh_params)
+            
+            # For backward compatibility, also handle individual filter flags
             # Apply morphological filters if specified
             if params.get('apply_morphological'):
                 morph_type = params.get('morphological_type')
@@ -148,23 +198,6 @@ def process_image_task(task_id, image_path, filename, params, use_compressed, da
                     enhanced = apply_opening(enhanced, morph_params)
                 elif morph_type == 'closing':
                     enhanced = apply_closing(enhanced, morph_params)
-            
-            # Apply clarity if specified
-            if params.get('apply_clarity'):
-                clarity_params = {
-                    'clarity': params.get('clarity', 0.5),
-                    'edge_kernel': params.get('edge_kernel', 3),
-                    'edge_scale': params.get('edge_scale', 1.0)
-                }
-                enhanced = apply_clarity(enhanced, clarity_params)
-            
-            # Apply brightness/contrast if specified
-            if params.get('apply_brightness_contrast'):
-                bc_params = {
-                    'brightness': params.get('brightness', 0.0),
-                    'contrast': params.get('contrast', 1.0)
-                }
-                enhanced = apply_brightness_contrast(enhanced, bc_params)
             
             task_manager.update_task_progress(task_id, 85)
         except Exception as e:

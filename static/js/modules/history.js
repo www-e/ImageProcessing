@@ -23,19 +23,42 @@ export function loadHistory() {
     hideHistoryDetail();
     
     // Fetch history from server
+    console.log('Fetching history from server...');
     fetch('/history')
-        .then(response => response.json())
+        .then(response => {
+            console.log('History response status:', response.status);
+            return response.json();
+        })
         .then(data => {
             // Clear loading state
             historyList.innerHTML = '';
             
+            console.log('History data received:', data);
+            
             if (data.success && data.history && data.history.length > 0) {
+                console.log(`Rendering ${data.history.length} history entries`);
+                // Sort history entries by timestamp (newest first)
+                const sortedHistory = [...data.history].sort((a, b) => {
+                    return new Date(b.timestamp) - new Date(a.timestamp);
+                });
+                
                 // Render history entries
-                data.history.forEach(entry => {
+                sortedHistory.forEach(entry => {
+                    console.log('Creating entry element for:', entry.id);
                     const historyEntry = createHistoryEntryElement(entry);
                     historyList.appendChild(historyEntry);
                 });
+                
+                // Show the first entry by default
+                if (sortedHistory.length > 0) {
+                    const firstEntry = document.querySelector('.history-entry');
+                    if (firstEntry) {
+                        firstEntry.classList.add('active');
+                        showHistoryDetail(sortedHistory[0]);
+                    }
+                }
             } else {
+                console.log('No history entries found or success=false');
                 // Show empty state
                 historyList.innerHTML = '<div class="history-empty">No history entries yet</div>';
             }
@@ -48,6 +71,8 @@ export function loadHistory() {
 
 // Create history entry element
 export function createHistoryEntryElement(entry) {
+    console.log('Creating history entry element with data:', entry);
+    
     const historyEntry = document.createElement('div');
     historyEntry.className = 'history-entry';
     historyEntry.dataset.id = entry.id;
@@ -73,8 +98,18 @@ export function createHistoryEntryElement(entry) {
     // Create thumbnail
     const thumbnail = document.createElement('img');
     thumbnail.className = 'history-entry-thumbnail';
-    thumbnail.src = `/static/results/${entry.result_filename}`;
+    const thumbnailUrl = `/static/results/${entry.result_filename}`;
+    console.log('Setting thumbnail image src to:', thumbnailUrl);
+    thumbnail.src = thumbnailUrl;
     thumbnail.alt = 'Enhanced image';
+    
+    // Add error handling for thumbnail
+    thumbnail.onerror = () => {
+        console.error('Failed to load thumbnail image:', thumbnailUrl);
+        thumbnail.src = '/static/images/placeholder.png';
+        thumbnail.alt = 'Image not found';
+    };
+    
     historyEntry.appendChild(thumbnail);
     
     // Add click event
@@ -94,12 +129,26 @@ export function createHistoryEntryElement(entry) {
 
 // Show history detail
 export function showHistoryDetail(entry) {
+    console.log('Showing history detail for entry:', entry);
+    
     const historyDetailEmpty = document.querySelector('.history-detail-empty');
     const historyDetailContent = document.querySelector('.history-detail-content');
     const historyDetailTitle = document.getElementById('history-detail-title');
     const historyOriginalImage = document.getElementById('history-original-image');
     const historyEnhancedImage = document.getElementById('history-enhanced-image');
     const historyDownloadBtn = document.getElementById('history-download-btn');
+    
+    if (!historyDetailEmpty || !historyDetailContent || !historyDetailTitle || 
+        !historyOriginalImage || !historyEnhancedImage || !historyDownloadBtn) {
+        console.error('One or more history detail elements not found in the DOM');
+        console.log('historyDetailEmpty:', historyDetailEmpty);
+        console.log('historyDetailContent:', historyDetailContent);
+        console.log('historyDetailTitle:', historyDetailTitle);
+        console.log('historyOriginalImage:', historyOriginalImage);
+        console.log('historyEnhancedImage:', historyEnhancedImage);
+        console.log('historyDownloadBtn:', historyDownloadBtn);
+        return;
+    }
     
     // Store current history entry
     currentHistoryEntry = entry;
@@ -114,11 +163,30 @@ export function showHistoryDetail(entry) {
     historyDetailTitle.textContent = entry.descriptive_name || 'Enhancement Details';
     
     // Set images
-    historyOriginalImage.src = `/static/uploads/${entry.original_filename}`;
-    historyEnhancedImage.src = `/static/results/${entry.result_filename}`;
+    const originalImageUrl = `/static/uploads/${entry.original_filename}`;
+    const enhancedImageUrl = `/static/results/${entry.result_filename}`;
+    
+    console.log('Setting original image src to:', originalImageUrl);
+    console.log('Setting enhanced image src to:', enhancedImageUrl);
+    
+    historyOriginalImage.src = originalImageUrl;
+    historyEnhancedImage.src = enhancedImageUrl;
+    
+    // Add error handling for images
+    historyOriginalImage.onerror = () => {
+        console.error('Failed to load original image:', originalImageUrl);
+        historyOriginalImage.src = '/static/images/placeholder.png';
+        historyOriginalImage.alt = 'Original image not found';
+    };
+    
+    historyEnhancedImage.onerror = () => {
+        console.error('Failed to load enhanced image:', enhancedImageUrl);
+        historyEnhancedImage.src = '/static/images/placeholder.png';
+        historyEnhancedImage.alt = 'Enhanced image not found';
+    };
     
     // Set download link
-    historyDownloadBtn.href = `/static/results/${entry.result_filename}`;
+    historyDownloadBtn.href = enhancedImageUrl;
     historyDownloadBtn.download = `enhanced_${entry.original_filename}`;
     
     // Render parameters

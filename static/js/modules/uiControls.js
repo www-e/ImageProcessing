@@ -190,27 +190,46 @@ export function setupFilterButtons() {
     const enhancementBtns = document.querySelectorAll('.enhancement-btn');
     const enhancementParams = document.querySelector('.enhancement-params');
     
+    // Add counter for selected filters
+    let selectedFiltersCount = 0;
+    const MAX_FILTERS = 4;
+    
     enhancementBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            // Remove active class from all buttons
-            enhancementBtns.forEach(b => b.classList.remove('active'));
+            // Toggle active class on clicked button
+            if (btn.classList.contains('active')) {
+                // If already active, deactivate it
+                btn.classList.remove('active');
+                selectedFiltersCount--;
+            } else {
+                // If not active and we haven't reached the limit, activate it
+                if (selectedFiltersCount < MAX_FILTERS) {
+                    btn.classList.add('active');
+                    selectedFiltersCount++;
+                } else {
+                    // If we've reached the limit, show an error message
+                    showError(`You can only select up to ${MAX_FILTERS} enhancement filters at once`);
+                    return;
+                }
+            }
             
-            // Add active class to clicked button
-            btn.classList.add('active');
+            // Show parameters if at least one filter is selected
+            if (selectedFiltersCount > 0) {
+                enhancementParams.classList.add('visible');
+            } else {
+                enhancementParams.classList.remove('visible');
+            }
             
-            // Set active filter
-            const activeEnhancementFilter = btn.dataset.filter;
-            
-            // Show parameters
-            enhancementParams.classList.add('visible');
-            
-            // Show/hide conditional parameters based on filter type
+            // Show/hide conditional parameters based on selected filters
             document.querySelectorAll('.enhancement-param-group').forEach(group => {
                 group.style.display = 'none';
             });
             
+            // Get the clicked filter type
+            const clickedFilterType = btn.dataset.filter;
+            
             // Show specific parameters based on filter type
-            switch(activeEnhancementFilter) {
+            switch(clickedFilterType) {
                 case 'brightness_contrast':
                     document.getElementById('brightness-group').style.display = 'flex';
                     document.getElementById('contrast-group').style.display = 'flex';

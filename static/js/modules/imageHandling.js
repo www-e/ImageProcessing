@@ -286,10 +286,11 @@ export function applyMorphologicalFilter() {
 
 // Apply enhancement filter
 export function applyEnhancementFilter() {
-    const activeEnhancementFilter = document.querySelector('.enhancement-btn.active')?.dataset.filter;
+    // Get all selected enhancement filters
+    const activeEnhancementFilters = Array.from(document.querySelectorAll('.enhancement-btn.active')).map(btn => btn.dataset.filter);
     
-    if (!activeEnhancementFilter) {
-        showError('Please select an enhancement filter first');
+    if (activeEnhancementFilters.length === 0) {
+        showError('Please select at least one enhancement filter');
         return;
     }
     
@@ -298,48 +299,52 @@ export function applyEnhancementFilter() {
         return;
     }
     
-    // Get parameters based on the active enhancement filter
+    // Get parameters for all selected filters
     const params = {
-        filter_type: activeEnhancementFilter
+        filter_types: activeEnhancementFilters,  // Send array of selected filters
+        filter_type: activeEnhancementFilters[0]  // Keep the first one for backward compatibility
     };
     
-    // Add conditional parameters based on filter type
-    switch(activeEnhancementFilter) {
-        case 'brightness_contrast':
-            params.brightness = parseFloat(document.getElementById('brightness').value);
-            params.contrast = parseFloat(document.getElementById('contrast').value);
-            break;
-        case 'exposure':
-            params.exposure = parseFloat(document.getElementById('exposure').value);
-            params.highlights = parseFloat(document.getElementById('highlights').value);
-            params.shadows = parseFloat(document.getElementById('shadows').value);
-            break;
-        case 'vibrance':
-            params.vibrance = parseFloat(document.getElementById('vibrance').value);
-            params.saturation = parseFloat(document.getElementById('saturation').value);
-            break;
-        case 'clarity':
-            params.clarity = parseFloat(document.getElementById('clarity').value);
-            params.edge_kernel = parseInt(document.getElementById('edge-kernel').value);
-            params.edge_scale = parseFloat(document.getElementById('edge-scale').value);
-            
-            // Advanced options if available
-            if (document.getElementById('apply-clahe')) {
-                params.apply_clahe = document.getElementById('apply-clahe').checked;
-            }
-            if (document.getElementById('clahe-clip')) {
-                params.clahe_clip = parseFloat(document.getElementById('clahe-clip').value);
-            }
-            if (document.getElementById('clahe-grid')) {
-                params.clahe_grid = parseInt(document.getElementById('clahe-grid').value);
-            }
-            break;
-        case 'shadows_highlights':
-            params.shadows_recovery = parseFloat(document.getElementById('shadows-recovery').value);
-            params.highlights_recovery = parseFloat(document.getElementById('highlights-recovery').value);
-            params.mid_tone_contrast = parseFloat(document.getElementById('mid-tone-contrast').value);
-            break;
-    }
+    // Add parameters for each filter type
+    activeEnhancementFilters.forEach(filterType => {
+        // Add conditional parameters based on filter type
+        switch(filterType) {
+            case 'brightness_contrast':
+                params.brightness = parseFloat(document.getElementById('brightness').value);
+                params.contrast = parseFloat(document.getElementById('contrast').value);
+                break;
+            case 'exposure':
+                params.exposure = parseFloat(document.getElementById('exposure').value);
+                params.highlights = parseFloat(document.getElementById('highlights').value);
+                params.shadows = parseFloat(document.getElementById('shadows').value);
+                break;
+            case 'vibrance':
+                params.vibrance = parseFloat(document.getElementById('vibrance').value);
+                params.saturation = parseFloat(document.getElementById('saturation')?.value || 0);
+                break;
+            case 'clarity':
+                params.clarity = parseFloat(document.getElementById('clarity').value);
+                params.edge_kernel = parseInt(document.getElementById('edge-kernel')?.value || 3);
+                params.edge_scale = parseFloat(document.getElementById('edge-scale')?.value || 1.0);
+                
+                // Advanced options if available
+                if (document.getElementById('apply-clahe')) {
+                    params.apply_clahe = document.getElementById('apply-clahe').checked;
+                }
+                if (document.getElementById('clahe-clip')) {
+                    params.clahe_clip = parseFloat(document.getElementById('clahe-clip').value);
+                }
+                if (document.getElementById('clahe-grid')) {
+                    params.clahe_grid = parseInt(document.getElementById('clahe-grid').value);
+                }
+                break;
+            case 'shadows_highlights':
+                params.shadows_recovery = parseFloat(document.getElementById('shadows-recovery')?.value || 0.5);
+                params.highlights_recovery = parseFloat(document.getElementById('highlights-recovery')?.value || 0.5);
+                params.mid_tone_contrast = parseFloat(document.getElementById('mid-tone-contrast')?.value || 0);
+                break;
+        }
+    });
     
     // Show loading spinner
     const loadingSpinner = document.getElementById('loading-spinner');

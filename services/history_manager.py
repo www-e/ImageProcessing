@@ -42,11 +42,15 @@ class HistoryManager:
         entry_id = str(uuid.uuid4())
         timestamp = datetime.now().isoformat()
         
+        # Generate a descriptive name based on the parameters
+        descriptive_name = self._generate_descriptive_name(params, result_filename)
+        
         entry = {
             'id': entry_id,
             'timestamp': timestamp,
             'original_filename': original_filename,
             'result_filename': result_filename,
+            'descriptive_name': descriptive_name,
             'params': params
         }
         
@@ -80,3 +84,36 @@ class HistoryManager:
         self.history = []
         self.save_history()
         return count
+    
+    def _generate_descriptive_name(self, params, result_filename):
+        """Generate a descriptive name based on the parameters"""
+        # Check if it's a morphological filter
+        if params.get('is_morphological') and params.get('filter_type'):
+            return f"Morphological {params.get('filter_type').title()} Filter"
+        
+        # Check if it's using a preset
+        if params.get('preset'):
+            preset_name = params.get('preset').replace('_', ' ').title()
+            return f"Preset: {preset_name}"
+        
+        # Check for multiple enhancement filters
+        if 'filter_types' in params and params['filter_types']:
+            filter_types = params['filter_types']
+            if len(filter_types) > 1:
+                return f"Multiple Filters ({len(filter_types)})"
+            elif len(filter_types) == 1:
+                filter_name = filter_types[0].replace('_', ' ').title()
+                return f"{filter_name} Enhancement"
+        
+        # Default to adaptive enhancement
+        if result_filename.startswith('enhanced_'):
+            return "Adaptive Contrast Enhancement"
+        
+        # Extract from filename as fallback
+        if '_' in result_filename:
+            parts = result_filename.split('_')
+            if len(parts) > 1:
+                filter_type = parts[0].replace('morph_', '').title()
+                return f"{filter_type} Filter"
+        
+        return "Image Enhancement"

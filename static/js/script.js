@@ -433,6 +433,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Apply enhancement filter button
+    const applyEnhancementBtn = document.getElementById('apply-btn');
     if (applyEnhancementBtn) {
         applyEnhancementBtn.addEventListener('click', applyEnhancementFilter);
     }
@@ -448,6 +449,9 @@ document.addEventListener('DOMContentLoaded', function() {
             showError('Please upload an image first');
             return;
         }
+        
+        // Show loading indicator
+        showLoadingIndicator();
         
         // Get parameters
         const params = {
@@ -480,8 +484,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Show loading spinner
-        document.getElementById('loading-spinner').style.display = 'flex';
-        
+        const loadingSpinner = document.getElementById('loading-spinner');
+        if (loadingSpinner) {
+            loadingSpinner.style.display = 'flex';
+        }        
         // Send request to server
         fetch('/apply_morphological', {
             method: 'POST',
@@ -500,16 +506,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.error) {
                 showError(data.error);
             } else {
-                // Update result image
-                const resultImg = document.getElementById('result-image');
-                resultImg.src = data.result_image + '?t=' + new Date().getTime(); // Add timestamp to prevent caching
-                resultImg.style.display = 'block';
-                
-                // Show result section
-                document.getElementById('result-section').style.display = 'block';
-                
-                // Scroll to result
-                document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
+                // Start polling for task status
+                if (data.task_id) {
+                    startProcessingPolling(data.task_id, data.estimated_time);
+                } else {
+                    showError('No task ID returned from server');
+                }
             }
         })
         .catch(error => {
@@ -517,7 +519,9 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .finally(() => {
             // Hide loading spinner
-            document.getElementById('loading-spinner').style.display = 'none';
+            if (loadingSpinner) {
+                loadingSpinner.style.display = 'none';
+            }
         });
     }
     
@@ -577,7 +581,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Show loading spinner
-        document.getElementById('loading-spinner').style.display = 'flex';
+        const loadingSpinner = document.getElementById('loading-spinner');
+        if (loadingSpinner) {
+            loadingSpinner.style.display = 'flex';
+        }        
         
         // Send request to server
         fetch('/apply_enhancement', {

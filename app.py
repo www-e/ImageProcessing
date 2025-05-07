@@ -23,6 +23,7 @@ from filters.hit_miss_transform import apply_hit_miss_transform
 from filters.thinning import apply_thinning
 from filters.thickening import apply_thickening
 from filters.skeletonization import apply_skeletonization
+from filters.morphological_filters import apply_dilation, apply_erosion, apply_opening, apply_closing, apply_tophat
 from utils.image_utils import load_image, save_image
 from utils.history_manager import HistoryManager
 from utils.image_optimizer import compress_image, estimate_processing_time, analyze_image, clear_image_cache
@@ -642,7 +643,8 @@ def apply_enhancement():
 
 def process_morphological_task(task_id, image_path, filename, params, use_compressed, data):
     """Process a morphological filter task in the background."""
-    # ... (rest of the code remains the same)
+    # Get the task from the processing_tasks dictionary
+    task = processing_tasks.get(task_id)
     if not task:
         return
     
